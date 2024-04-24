@@ -5,3 +5,6 @@ Repository of Machine Learning models designed to predict how current MLB player
 
 Data for this project is hosted in a [hugging face dataset repository](https://huggingface.co/datasets/Jensen-holm/statcast-era-pitches) that contains a parquet file with every MLB pitch from the Statcast era up through the last season (2015-2023 as of now).
 
+## To update Hugging Face repo (without github actions)
+ - $ git remote add space git@hf.co:Jensen-holm/bsbl-tomorrow
+ - $ git push --force space main
