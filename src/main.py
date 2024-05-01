@@ -3,9 +3,9 @@ import numpy as np
 import pybaseball
 import datetime
 from matplotlib import axes
+import matplotlib.pyplot as plt
 
 from plot_tunnel import plot_strike_zone
-from film_room import get_pitch
 
 
 YEAR = str(datetime.date.today().year)
@@ -77,7 +77,7 @@ def _compute_tunnel_score(statcast_pitches_df: pl.DataFrame) -> pl.DataFrame:
             point2=(pl.col("prev_release_pos_x"), pl.col("release_pos_z")),
         )
     ).with_columns(
-        tunnel_score=pl.col("actual_distance") / pl.col("tunnel_distance"),
+        tunnel_score=(pl.col("actual_distance") / pl.col("tunnel_distance")) - pl.col("release_distance"),
     )
 
 
@@ -114,7 +114,6 @@ def _plot_pitches(tunneled_pitch: pl.DataFrame) -> axes.Axes:
     })
 
     tunnel_score = tunneled_pitch.select("tunnel_score").item()
-    print(tunneled_pitch.select("tunnel_distance").item())
     pitcher = tunneled_pitch.select("name").item() 
     df = pitch2.join(other=pl.concat([p1, p2,]), on=["game_date", "at_bat_number"]).to_pandas()
 
@@ -202,6 +201,7 @@ def main() -> None:
 
     tunnel_df = _get_player_names(tunnel_df)
     fig = _plot_pitches(tunnel_df.head(1))
+    plt.show()
     f1, f2 = _get_film_room_video(pitch=tunnel_df.head(1))
     print(f1, f2)
 
