@@ -3,6 +3,9 @@ from matplotlib import axes
 from typing import Optional
 import matplotlib.pyplot as plt
 from matplotlib import patches
+import matplotlib
+
+matplotlib.use("Agg")
 
 
 def plot_strike_zone(

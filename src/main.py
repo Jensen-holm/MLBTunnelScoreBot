@@ -7,6 +7,7 @@ from matplotlib import axes
 from plot_tunnel import plot_strike_zone
 
 
+
 YEAR = str(datetime.date.today().year)
 MONTH = str(datetime.date.today().month)
 YESTERDAY = datetime.date.today() - datetime.timedelta(days=1)
@@ -158,7 +159,7 @@ def _get_film_room_video(pitch: pl.DataFrame) -> tuple[str, str]:
     return url1, url2
 
 
-def yesterdays_top_tunnel() -> tuple[axes.Axes, str, str, str, str, float, str, str]:
+def yesterdays_top_tunnel() -> tuple[axes.Axes, str, str, str, str, str, float, str, str]:
     yesterdays_df: pl.DataFrame = _get_yesterdays_pitches()
     tied_df: pl.DataFrame = _tie_pitches_to_previous(yesterdays_df)
     tunnel_df: pl.DataFrame = _compute_tunnel_score(tied_df)
@@ -223,6 +224,7 @@ def yesterdays_top_tunnel() -> tuple[axes.Axes, str, str, str, str, float, str, 
     home_team = tunnel_df.select("home_team").item()
     away_team = tunnel_df.select("away_team").item()
     pitch_type = tunnel_df.select("pitch_name").item()
+    pitcher_id = str(tunnel_df.select("pitcher").item())
 
-    return fig, pitcher_name, pitch_type, home_team, away_team, tunnel_score, f1, f2
+    return fig, pitcher_name, pitcher_id, pitch_type, home_team, away_team, tunnel_score, f1, f2
 
