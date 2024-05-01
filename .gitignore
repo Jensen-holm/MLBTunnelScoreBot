@@ -163,3 +163,5 @@ cython_debug/
 *.csv
 *.parquet
 
+# file with sensitive API information
+xbot.py

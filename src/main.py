@@ -14,10 +14,12 @@ YESTERDAY = datetime.date.today() - datetime.timedelta(days=1)
 
 
 def _get_yesterdays_pitches() -> pl.DataFrame:
-    return pl.from_pandas(pybaseball.statcast(
-        start_dt=str(YESTERDAY),
-        end_dt=str(YESTERDAY),
-    ))
+    return pl.from_pandas(
+        pybaseball.statcast(
+            start_dt=str(YESTERDAY),
+            end_dt=str(YESTERDAY),
+        )
+    )
 
 
 def _tie_pitches_to_previous(pitches_df: pl.DataFrame) -> pl.DataFrame:
@@ -34,17 +36,20 @@ def _tie_pitches_to_previous(pitches_df: pl.DataFrame) -> pl.DataFrame:
 
 
 def _get_player_names(pitches_df: pl.DataFrame) -> pl.DataFrame:
-    pitchers=pybaseball.playerid_reverse_lookup(
+    pitchers = pybaseball.playerid_reverse_lookup(
         [pitcher["pitcher"] for pitcher in pitches_df.iter_rows(named=True)],
         key_type="mlbam",
     )
-    pitchers["name"] = (pitchers["name_first"] + " " + pitchers["name_last"]).str.title()
+    pitchers["name"] = (
+        pitchers["name_first"] + " " + pitchers["name_last"]
+    ).str.title()
 
     return pitches_df.join(
         other=pl.from_pandas(pitchers[["key_mlbam", "name"]]),
         left_on="pitcher",
         right_on="key_mlbam",
     )
+
 
 def _compute_tunnel_score(statcast_pitches_df: pl.DataFrame) -> pl.DataFrame:
     def _euclidean_distance(point1: tuple[pl.Expr, ...], point2: tuple[pl.Expr, ...]):
@@ -71,20 +76,20 @@ def _compute_tunnel_score(statcast_pitches_df: pl.DataFrame) -> pl.DataFrame:
             point1=(pl.col("plate_x"), pl.col("plate_z")),
             point2=(pl.col("prev_plate_x"), pl.col("prev_plate_z")),
         ),
-
         release_distance=_euclidean_distance(
             point1=(pl.col("release_pos_x"), pl.col("release_pos_z")),
             point2=(pl.col("prev_release_pos_x"), pl.col("release_pos_z")),
-        )
+        ),
     ).with_columns(
-        tunnel_score=(pl.col("actual_distance") / pl.col("tunnel_distance")) - pl.col("release_distance"),
+        tunnel_score=(pl.col("actual_distance") / pl.col("tunnel_distance"))
+        - pl.col("release_distance"),
     )
 
 
 def _plot_pitches(tunneled_pitch: pl.DataFrame) -> axes.Axes:
     # input should be a polars dataframe with just one pitch
     # and it s previous one
-    
+
     p1 = tunneled_pitch.select(
         "game_date",
         "at_bat_number",
@@ -109,13 +114,24 @@ def _plot_pitches(tunneled_pitch: pl.DataFrame) -> axes.Axes:
         "plate_z_no_movement",
     )
 
-    p2 = pitch2.rename({
-        col: "_".join(col.split("_")[1:]) if col.startswith("prev") else col for col in pitch2.columns
-    })
+    p2 = pitch2.rename(
+        {
+            col: "_".join(col.split("_")[1:]) if col.startswith("prev") else col
+            for col in pitch2.columns
+        }
+    )
 
     tunnel_score = tunneled_pitch.select("tunnel_score").item()
-    pitcher = tunneled_pitch.select("name").item() 
-    df = pitch2.join(other=pl.concat([p1, p2,]), on=["game_date", "at_bat_number"]).to_pandas()
+    pitcher = tunneled_pitch.select("name").item()
+    df = pitch2.join(
+        other=pl.concat(
+            [
+                p1,
+                p2,
+            ]
+        ),
+        on=["game_date", "at_bat_number"],
+    ).to_pandas()
 
     fig = plot_strike_zone(
         data=df,
@@ -128,7 +144,7 @@ def _plot_pitches(tunneled_pitch: pl.DataFrame) -> axes.Axes:
 
 def _get_film_room_video(pitch: pl.DataFrame) -> tuple[str, str]:
     inning = pitch.select("inning").item()
-    top_bot = pitch.select("inning_topbot").item() # needs to be either TOP or BOT
+    top_bot = pitch.select("inning_topbot").item()  # needs to be either TOP or BOT
     balls = pitch.select("balls").item()
     strikes = pitch.select("strikes").item()
     pitcher_id = pitch.select("pitcher").item()
@@ -143,7 +159,7 @@ def _get_film_room_video(pitch: pl.DataFrame) -> tuple[str, str]:
     return url1, url2
 
 
-def main() -> None:
+def yesterdays_top_tunnel() -> tuple[axes.Axes, str, str]:
     yesterdays_df: pl.DataFrame = _get_yesterdays_pitches()
     tied_df: pl.DataFrame = _tie_pitches_to_previous(yesterdays_df)
     tunnel_df: pl.DataFrame = _compute_tunnel_score(tied_df)
@@ -193,17 +209,14 @@ def main() -> None:
     )
 
     tunnel_df = (
-        tunnel_df
-        .drop_nulls(subset=keeper_cols)
+        tunnel_df.drop_nulls(subset=keeper_cols)
         .select(keeper_cols)
         .sort("tunnel_score", descending=True)
     )
 
     tunnel_df = _get_player_names(tunnel_df)
     fig = _plot_pitches(tunnel_df.head(1))
-    plt.show()
     f1, f2 = _get_film_room_video(pitch=tunnel_df.head(1))
-    print(f1, f2)
+    return fig, f1, f2
 
-if __name__ == "__main__":
-    main()
+
