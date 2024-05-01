@@ -3,7 +3,6 @@ import numpy as np
 import pybaseball
 import datetime
 from matplotlib import axes
-import matplotlib.pyplot as plt
 
 from plot_tunnel import plot_strike_zone
 
@@ -159,7 +158,7 @@ def _get_film_room_video(pitch: pl.DataFrame) -> tuple[str, str]:
     return url1, url2
 
 
-def yesterdays_top_tunnel() -> tuple[axes.Axes, str, str]:
+def yesterdays_top_tunnel() -> tuple[axes.Axes, str, str, str, str, float, str, str]:
     yesterdays_df: pl.DataFrame = _get_yesterdays_pitches()
     tied_df: pl.DataFrame = _tie_pitches_to_previous(yesterdays_df)
     tunnel_df: pl.DataFrame = _compute_tunnel_score(tied_df)
@@ -212,11 +211,18 @@ def yesterdays_top_tunnel() -> tuple[axes.Axes, str, str]:
         tunnel_df.drop_nulls(subset=keeper_cols)
         .select(keeper_cols)
         .sort("tunnel_score", descending=True)
+        .head(1)
     )
 
     tunnel_df = _get_player_names(tunnel_df)
-    fig = _plot_pitches(tunnel_df.head(1))
-    f1, f2 = _get_film_room_video(pitch=tunnel_df.head(1))
-    return fig, f1, f2
+    fig = _plot_pitches(tunnel_df)
+    f1, f2 = _get_film_room_video(pitch=tunnel_df)
 
+    pitcher_name = tunnel_df.select("name").item()
+    tunnel_score = tunnel_df.select("tunnel_score").item()
+    home_team = tunnel_df.select("home_team").item()
+    away_team = tunnel_df.select("away_team").item()
+    pitch_type = tunnel_df.select("pitch_name").item()
+
+    return fig, pitcher_name, pitch_type, home_team, away_team, tunnel_score, f1, f2
 
