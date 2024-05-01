@@ -2,9 +2,10 @@ import polars as pl
 import numpy as np
 import pybaseball
 import datetime
+from matplotlib import axes
 
 from plot_tunnel import plot_strike_zone
-from matplotlib import axes
+from film_room import get_pitch
 
 
 YEAR = str(datetime.date.today().year)
@@ -126,15 +127,21 @@ def _plot_pitches(tunneled_pitch: pl.DataFrame) -> axes.Axes:
     return fig
 
 
-def _get_film_room_video(pitch: pl.DataFrame) -> str:
+def _get_film_room_video(pitch: pl.DataFrame) -> tuple[str, str]:
     inning = pitch.select("inning").item()
     top_bot = pitch.select("inning_topbot").item() # needs to be either TOP or BOT
     balls = pitch.select("balls").item()
     strikes = pitch.select("strikes").item()
     pitcher_id = pitch.select("pitcher").item()
     outs = pitch.select("outs_when_up").item()
-    url = f"https://www.mlb.com/video/?q=Season+%3D+%5B{YEAR}%5D+AND+Date+%3D+%5B%22{YESTERDAY}%22%5D+AND+PitcherId+%3D+%5B{pitcher_id}%5D+AND+TopBottom+%3D+%5B%22{top_bot.upper()}%22%5D+AND+Outs+%3D+%5B{outs}%5D+AND+Balls+%3D+%5B{balls}%5D+AND+Strikes+%3D+%5B{strikes}%5D+AND+Inning+%3D+%5B{inning}%5D+Order+By+Timestamp+DESC"
-    return url
+
+    prev_outs = pitch.select("prev_outs_when_up").item()
+    prev_strikes = pitch.select("prev_strikes").item()
+    prev_balls = pitch.select("prev_balls").item()
+
+    url1 = f"https://www.mlb.com/video/?q=Season+%3D+%5B{YEAR}%5D+AND+Date+%3D+%5B%22{YESTERDAY}%22%5D+AND+PitcherId+%3D+%5B{pitcher_id}%5D+AND+TopBottom+%3D+%5B%22{top_bot.upper()}%22%5D+AND+Outs+%3D+%5B{outs}%5D+AND+Balls+%3D+%5B{balls}%5D+AND+Strikes+%3D+%5B{strikes}%5D+AND+Inning+%3D+%5B{inning}%5D+Order+By+Timestamp+DESC"
+    url2 = f"https://www.mlb.com/video/?q=Season+%3D+%5B{YEAR}%5D+AND+Date+%3D+%5B%22{YESTERDAY}%22%5D+AND+PitcherId+%3D+%5B{pitcher_id}%5D+AND+TopBottom+%3D+%5B%22{top_bot.upper()}%22%5D+AND+Outs+%3D+%5B{prev_outs}%5D+AND+Balls+%3D+%5B{prev_balls}%5D+AND+Strikes+%3D+%5B{prev_strikes}%5D+AND+Inning+%3D+%5B{inning}%5D+Order+By+Timestamp+DESC"
+    return url1, url2
 
 
 def main() -> None:
@@ -195,7 +202,8 @@ def main() -> None:
 
     tunnel_df = _get_player_names(tunnel_df)
     fig = _plot_pitches(tunnel_df.head(1))
-    print(_get_film_room_video(pitch=tunnel_df.head(1)))
+    f1, f2 = _get_film_room_video(pitch=tunnel_df.head(1))
+    print(f1, f2)
 
 if __name__ == "__main__":
     main()
