@@ -59,10 +59,45 @@ def main() -> None:
     tied_df: pl.DataFrame = _tie_pitches_to_previous(yesterdays_df)
     tunnel_df: pl.DataFrame = _compute_tunnel_plus(tied_df)
 
+    keeper_cols: list[str] = [
+        "pitcher",
+        "batter",
+        "home_team",
+        "away_team",
+        "inning",
+        "prev_inning",
+        "balls",
+        "prev_balls",
+        "strikes",
+        "prev_strikes",
+        "outs_when_up",
+        "prev_outs_when_up",
+        "des",
+        "prev_des",
+        "pitch_type",
+        "prev_pitch_type",
+        "pitch_name",
+        "prev_pitch_name",
+        "game_date",
+        "tunnel_distance",
+        "actual_distance",
+    ]
+
     # drop missing values from tunnel_df
-    tunnel_df.drop_nulls(subset=[
-        "",
-    ])
+    tunnel_df = tunnel_df.drop_nulls(subset=keeper_cols).select(
+        keeper_cols,
+    )
+
+    tunnel_df = (
+        tunnel_df
+        .drop_nulls(subset=keeper_cols)
+        .select(keeper_cols)
+        .sort(by="tunnel_distance", descending=False)
+        .head(50)
+        .sort(by="actual_distance", descending=True)
+    )
+
+    print(tunnel_df.head())
 
 
 if __name__ == "__main__":
