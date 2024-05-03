@@ -163,7 +163,3 @@ cython_debug/
 *.csv
 *.parquet
 
-# file with sensitive API information
-# once this is running on raspberry pi, we will move to using 
-# environment variables instead of hardcoding the API keys
-x_api_info.py
