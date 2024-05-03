@@ -9,7 +9,7 @@ def mainloop() -> None:
         success: bool = MLBTunnelBot.write()
         if not success:
             logging.warning(
-                # the specific reason for why it 
+                # the specific reason for why it
                 # failed will have been logged before this
                 f"Skipping {YESTERDAY} due to unsuccessful write."
             )
