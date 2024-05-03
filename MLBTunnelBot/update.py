@@ -132,7 +132,7 @@ def _plot_pitches(tunneled_pitch: pl.DataFrame) -> axes.Axes:
         data=pitch2.join(
             other=pl.concat([p1, p2]), on=["game_date", "at_bat_number"]
         ).to_pandas(),
-        title=f"Best Pitch Yesterday by Tunnel Score\n{pitcher} {tunnel_score:.2f}",
+        title=f"Best Pitch {YESTERDAY} by Tunnel Score\n{pitcher} {tunnel_score:.2f}",
         colorby="pitch_name",
         annotation="pitch_type",
     )
