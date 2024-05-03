@@ -11,7 +11,7 @@ from .data import keeper_cols
 
 YEAR = str(datetime.date.today().year)
 MONTH = str(datetime.date.today().month)
-YESTERDAY = datetime.date.today() - datetime.timedelta(days=1)
+YESTERDAY = datetime.date.today() - datetime.timedelta(days=3)
 
 
 def _get_yesterdays_pitches() -> Optional[pl.DataFrame]:
@@ -22,6 +22,7 @@ def _get_yesterdays_pitches() -> Optional[pl.DataFrame]:
         )
     )
     if yesterday_df.is_empty():
+        # caller of this function handles when this is None
         return None
     return yesterday_df
 
@@ -116,8 +117,8 @@ def _plot_pitches(tunneled_pitch: pl.DataFrame) -> axes.Axes:
         "prev_pitch_name",
         "prev_plate_x",
         "prev_plate_z",
-        "plate_x_no_movement",
-        "plate_z_no_movement",
+        "prev_plate_x_no_movement",
+        "prev_plate_z_no_movement",
         "prev_release_pos_x",
         "prev_release_pos_z",
     )
