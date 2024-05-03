@@ -164,4 +164,6 @@ cython_debug/
 *.parquet
 
 # file with sensitive API information
-xbot.py
+# once this is running on raspberry pi, we will move to using 
+# environment variables instead of hardcoding the API keys
+x_api_info.py

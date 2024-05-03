@@ -8,6 +8,10 @@ import matplotlib
 matplotlib.use("Agg")
 
 
+from .data import TUNNEL_PLOT_DIR
+
+
+# custom version of pybaseball plot_strike_zone function
 def plot_strike_zone(
     data: pd.DataFrame,
     title: str = "",
@@ -170,5 +174,6 @@ def plot_strike_zone(
 
     plt.legend()
     plt.title(title)
+    plt.savefig(TUNNEL_PLOT_DIR)
 
     return axis
