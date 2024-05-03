@@ -169,7 +169,17 @@ def plot_strike_zone(
         markersize=10,
         markerfacecolor="none",
         color="red",
-        label="Pitch Tunnel",
+        label="Pitch Tunnels",
+    )
+
+    plt.plot(
+        data["release_pos_x"],
+        data["release_pos_z"],
+        marker="o",
+        markersize=5,
+        markerfacecolor="none",
+        color="blue",
+        label="Release Points",
     )
 
     plt.legend()

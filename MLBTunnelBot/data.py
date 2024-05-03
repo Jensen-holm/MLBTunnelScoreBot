@@ -44,6 +44,10 @@ keeper_cols: list[str] = [
     "at_bat_number",
     "pitch_number",
     "prev_pitch_number",
+    "release_pos_x",
+    "release_pos_z",
+    "prev_release_pos_x",
+    "prev_release_pos_z",
 ]
 
 # 2024 mlb team official hashtags

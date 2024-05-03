@@ -100,6 +100,8 @@ def _plot_pitches(tunneled_pitch: pl.DataFrame) -> axes.Axes:
         "plate_z",
         "plate_x_no_movement",
         "plate_z_no_movement",
+        "release_pos_x",
+        "release_pos_z",
     )
 
     pitch2 = tunneled_pitch.select(
@@ -112,6 +114,8 @@ def _plot_pitches(tunneled_pitch: pl.DataFrame) -> axes.Axes:
         "prev_plate_z",
         "plate_x_no_movement",
         "plate_z_no_movement",
+        "prev_release_pos_x",
+        "prev_release_pos_z",
     )
 
     p2 = pitch2.rename(
