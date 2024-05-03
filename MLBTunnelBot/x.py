@@ -1,3 +1,4 @@
+from typing import Optional
 import requests
 import logging
 
@@ -11,7 +12,7 @@ from .data import (
 )
 
 
-def _update_profile_picture(player_mlbam_id: str) -> None:
+def _update_profile_picture(player_mlbam_id: str | float) -> None:
     link = f"https://img.mlbstatic.com/mlb-photos/image/upload/d_people:generic:headshot:67:current.png/w_426,q_auto:best/v1/people/{player_mlbam_id}/headshot/67/current"
 
     r = requests.get(link)
@@ -62,17 +63,22 @@ def _build_tweet_text(**kwargs) -> str:
     )
 
 
-def write() -> None:
-    pitch_info: dict[str, str | float] = yesterdays_top_tunnel()
+def write() -> bool:
+    pitch_info: Optional[dict[str, str | float]] = yesterdays_top_tunnel()
+
+    if pitch_info is None:
+        logging.warning(f"There must not have been any games on {YESTERDAY}")
+        return False
+
     tunnel_plot = api.media_upload(filename=TUNNEL_PLOT_DIR)
-
     pitcher_id = pitch_info.get("pitcher_id", None)
-    if pitcher_id is None:
-        logging.error("No pitcher_id found in pitch_info. Exiting.")
-        quit()
 
+    assert tunnel_plot is not None
+    assert pitcher_id is not None
     _update_profile_picture(player_mlbam_id=pitcher_id)
     client.create_tweet(
         text=_build_tweet_text(kwargs=pitch_info),
         media_ids=[tunnel_plot.media_id],
     )
+    return True
+

@@ -1,3 +1,4 @@
+from typing import Optional
 import polars as pl
 import numpy as np
 import pybaseball
@@ -13,13 +14,16 @@ MONTH = str(datetime.date.today().month)
 YESTERDAY = datetime.date.today() - datetime.timedelta(days=1)
 
 
-def _get_yesterdays_pitches() -> pl.DataFrame:
-    return pl.from_pandas(
+def _get_yesterdays_pitches() -> Optional[pl.DataFrame]:
+    yesterday_df: pl.DataFrame = pl.from_pandas(
         pybaseball.statcast(
             start_dt=str(YESTERDAY),
             end_dt=str(YESTERDAY),
         )
     )
+    if yesterday_df.is_empty():
+        return None
+    return yesterday_df
 
 
 def _tie_pitches_to_previous(pitches_df: pl.DataFrame) -> pl.DataFrame:
@@ -156,8 +160,11 @@ def _get_film_room_video(pitch: pl.DataFrame) -> tuple[str, str]:
     return url1, url2
 
 
-def yesterdays_top_tunnel() -> dict[str, str | float]:
-    yesterdays_df: pl.DataFrame = _get_yesterdays_pitches()
+def yesterdays_top_tunnel() -> Optional[dict[str, str | float]]:
+    yesterdays_df: Optional[pl.DataFrame] = _get_yesterdays_pitches()
+    if yesterdays_df is None:
+        return None
+
     tied_df: pl.DataFrame = _tie_pitches_to_previous(yesterdays_df)
     tunnel_df: pl.DataFrame = _compute_tunnel_score(tied_df)
 
