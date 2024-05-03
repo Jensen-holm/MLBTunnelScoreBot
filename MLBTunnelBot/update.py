@@ -11,7 +11,7 @@ from .data import keeper_cols
 
 YEAR = str(datetime.date.today().year)
 MONTH = str(datetime.date.today().month)
-YESTERDAY = datetime.date.today() - datetime.timedelta(days=3)
+YESTERDAY = datetime.date.today() - datetime.timedelta(days=1)
 
 
 def _get_yesterdays_pitches() -> Optional[pl.DataFrame]:
