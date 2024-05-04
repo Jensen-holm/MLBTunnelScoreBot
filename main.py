@@ -36,9 +36,6 @@ def mainloop() -> None:
 
         finally:
             sleep_time = next_iter_start_time - time.time()
-            logging.info(
-                f"Sleeping until {datetime.datetime.now() + datetime.timedelta(seconds=sleep_time)}"
-            )
             time.sleep(sleep_time)
 
 
