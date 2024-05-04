@@ -8,7 +8,7 @@ import matplotlib
 matplotlib.use("Agg")
 
 
-from .data import TUNNEL_PLOT_DIR
+from .consts import TUNNEL_PLOT_DIR
 
 
 # custom version of pybaseball plot_strike_zone function

@@ -5,7 +5,7 @@ import logging
 
 from .x_api_info import api, client
 from .update import yesterdays_top_tunnel
-from .data import *
+from .consts import *
 
 
 def _update_profile_picture(player_mlbam_id: str | float) -> None:

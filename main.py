@@ -1,16 +1,25 @@
+# MLB Tunnel Bot
+# Author: Jensen Holm
+# April / May 2024
+
+# disable tqdm progress bar used in pybaseball
+import os
+
+os.environ["TQDM_DISABLE"] = "1"
+
 import MLBTunnelBot
 import datetime
 import logging
 import time
 
-
+# configure logger
 logging.basicConfig(level=logging.INFO)
 
 
 def mainloop() -> None:
     while True:
+        next_iter_start_time = time.time() + (24 * 60 * 60)
         yesterday = datetime.date.today() - datetime.timedelta(days=1)
-        start_time = time.time()
 
         try:
             _ = MLBTunnelBot.write(yesterday=yesterday)
@@ -26,8 +35,7 @@ def mainloop() -> None:
             logging.error(f"Unexpected issue for {yesterday}'s write: {e}.")
 
         finally:
-            end_time = time.time()
-            sleep_time = (24 * 60 * 60) - (end_time - start_time)
+            sleep_time = next_iter_start_time - time.time()
             logging.info(
                 f"Sleeping until {datetime.datetime.now() + datetime.timedelta(seconds=sleep_time)}"
             )

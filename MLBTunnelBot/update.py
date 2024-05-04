@@ -8,7 +8,7 @@ from typing import Any
 
 from .exceptions import EmptyStatcastDFException
 from .plot_tunnel import plot_strike_zone
-from .data import KEEPER_COLS
+from .consts import KEEPER_COLS
 
 
 def _get_yesterdays_pitches(yesterdays_date: datetime.date) -> pl.DataFrame:
@@ -16,6 +16,7 @@ def _get_yesterdays_pitches(yesterdays_date: datetime.date) -> pl.DataFrame:
         pybaseball.statcast(
             start_dt=f"{yesterdays_date}",
             end_dt=f"{yesterdays_date}",
+            verbose=False,
         )
     )
     if yesterday_df.is_empty():

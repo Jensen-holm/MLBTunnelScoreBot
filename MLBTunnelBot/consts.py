@@ -95,4 +95,3 @@ HASHTAG_MAP: dict[str, str] = {
     "TEX": "StraightUpTX",
     "TOR": "TOTHECORE",
 }
-
