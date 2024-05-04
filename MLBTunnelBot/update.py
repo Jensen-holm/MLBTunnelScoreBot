@@ -6,6 +6,11 @@ import datetime
 from matplotlib import axes
 from typing import Any
 
+import warnings
+
+# ignore pandas future warnings that are caused by pybaseball
+warnings.simplefilter(action="ignore", category=FutureWarning)
+
 from .exceptions import EmptyStatcastDFException
 from .plot_tunnel import plot_strike_zone
 from .consts import KEEPER_COLS
