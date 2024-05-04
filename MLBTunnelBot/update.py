@@ -1,29 +1,26 @@
-from typing import Optional
 import polars as pl
+import pandas as pd
 import numpy as np
 import pybaseball
 import datetime
 from matplotlib import axes
+from typing import Any
 
+from .exceptions import EmptyStatcastDFException
 from .plot_tunnel import plot_strike_zone
-from .data import keeper_cols
+from .data import KEEPER_COLS
 
 
-YEAR = str(datetime.date.today().year)
-MONTH = str(datetime.date.today().month)
-YESTERDAY = datetime.date.today() - datetime.timedelta(days=1)
-
-
-def _get_yesterdays_pitches() -> Optional[pl.DataFrame]:
+def _get_yesterdays_pitches(yesterdays_date: datetime.date) -> pl.DataFrame:
     yesterday_df: pl.DataFrame = pl.from_pandas(
         pybaseball.statcast(
-            start_dt=str(YESTERDAY),
-            end_dt=str(YESTERDAY),
+            start_dt=f"{yesterdays_date}",
+            end_dt=f"{yesterdays_date}",
         )
     )
     if yesterday_df.is_empty():
-        # caller of this function handles when this is None
-        return None
+        raise EmptyStatcastDFException()
+
     return yesterday_df
 
 
@@ -49,8 +46,12 @@ def _get_player_names(pitches_df: pl.DataFrame) -> pl.DataFrame:
         pitchers["name_first"] + " " + pitchers["name_last"]
     ).str.title()
 
+    subset = pitchers[["key_mlbam", "name"]]
+    assert isinstance(
+        subset, pd.DataFrame
+    ), "name subset is not a dataframe."  # just to make my editor happy
     return pitches_df.join(
-        other=pl.from_pandas(pitchers[["key_mlbam", "name"]]),
+        other=pl.from_pandas(subset),
         left_on="pitcher",
         right_on="key_mlbam",
     )
@@ -91,7 +92,7 @@ def _compute_tunnel_score(statcast_pitches_df: pl.DataFrame) -> pl.DataFrame:
     )
 
 
-def _plot_pitches(tunneled_pitch: pl.DataFrame) -> axes.Axes:
+def _plot_pitches(tunneled_pitch: pl.DataFrame, yesterday: datetime.date) -> axes.Axes:
     # input should be a polars dataframe with just one pitch
     # and it s previous one
 
@@ -137,14 +138,16 @@ def _plot_pitches(tunneled_pitch: pl.DataFrame) -> axes.Axes:
         data=pitch2.join(
             other=pl.concat([p1, p2]), on=["game_date", "at_bat_number"]
         ).to_pandas(),
-        title=f"Best Pitch {YESTERDAY} by Tunnel Score\n{pitcher} {tunnel_score:.2f}",
+        title=f"Best Pitch {yesterday} by Tunnel Score\n{pitcher} {tunnel_score:.2f}",
         colorby="pitch_name",
         annotation="pitch_type",
     )
     return fig
 
 
-def _get_film_room_video(pitch: pl.DataFrame) -> tuple[str, str]:
+def _get_film_room_video(
+    pitch: pl.DataFrame, yesterday: datetime.date
+) -> tuple[str, str]:
     inning = pitch.select("inning").item()
     top_bot = pitch.select("inning_topbot").item()  # needs to be either TOP or BOT
     balls = pitch.select("balls").item()
@@ -156,35 +159,41 @@ def _get_film_room_video(pitch: pl.DataFrame) -> tuple[str, str]:
     prev_strikes = pitch.select("prev_strikes").item()
     prev_balls = pitch.select("prev_balls").item()
 
-    url1 = f"https://www.mlb.com/video/?q=Season+%3D+%5B{YEAR}%5D+AND+Date+%3D+%5B%22{YESTERDAY}%22%5D+AND+PitcherId+%3D+%5B{pitcher_id}%5D+AND+TopBottom+%3D+%5B%22{top_bot.upper()}%22%5D+AND+Outs+%3D+%5B{outs}%5D+AND+Balls+%3D+%5B{balls}%5D+AND+Strikes+%3D+%5B{strikes}%5D+AND+Inning+%3D+%5B{inning}%5D+Order+By+Timestamp+DESC"
-    url2 = f"https://www.mlb.com/video/?q=Season+%3D+%5B{YEAR}%5D+AND+Date+%3D+%5B%22{YESTERDAY}%22%5D+AND+PitcherId+%3D+%5B{pitcher_id}%5D+AND+TopBottom+%3D+%5B%22{top_bot.upper()}%22%5D+AND+Outs+%3D+%5B{prev_outs}%5D+AND+Balls+%3D+%5B{prev_balls}%5D+AND+Strikes+%3D+%5B{prev_strikes}%5D+AND+Inning+%3D+%5B{inning}%5D+Order+By+Timestamp+DESC"
-    return url1, url2
+    year = yesterday.year
+    return (
+        f"https://www.mlb.com/video/?q=Season+%3D+%5B{year}%5D+AND+Date+%3D+%5B%22{yesterday}%22%5D+AND+PitcherId+%3D+%5B{pitcher_id}%5D+AND+TopBottom+%3D+%5B%22{top_bot.upper()}%22%5D+AND+Outs+%3D+%5B{outs}%5D+AND+Balls+%3D+%5B{balls}%5D+AND+Strikes+%3D+%5B{strikes}%5D+AND+Inning+%3D+%5B{inning}%5D+Order+By+Timestamp+DESC",
+        f"https://www.mlb.com/video/?q=Season+%3D+%5B{year}%5D+AND+Date+%3D+%5B%22{yesterday}%22%5D+AND+PitcherId+%3D+%5B{pitcher_id}%5D+AND+TopBottom+%3D+%5B%22{top_bot.upper()}%22%5D+AND+Outs+%3D+%5B{prev_outs}%5D+AND+Balls+%3D+%5B{prev_balls}%5D+AND+Strikes+%3D+%5B{prev_strikes}%5D+AND+Inning+%3D+%5B{inning}%5D+Order+By+Timestamp+DESC",
+    )
 
 
-def yesterdays_top_tunnel() -> Optional[dict[str, str | float]]:
-    yesterdays_df: Optional[pl.DataFrame] = _get_yesterdays_pitches()
-    if yesterdays_df is None:
-        return None
+def yesterdays_top_tunnel(yesterday: datetime.date) -> dict[str, Any]:
+    yesterdays_df: pl.DataFrame = _get_yesterdays_pitches(yesterday)
 
     tied_df: pl.DataFrame = _tie_pitches_to_previous(yesterdays_df)
     tunnel_df: pl.DataFrame = _compute_tunnel_score(tied_df)
 
     # drop missing values from tunnel_df
-    tunnel_df = tunnel_df.drop_nulls(subset=keeper_cols).select(
-        keeper_cols,
+    tunnel_df = tunnel_df.drop_nulls(subset=KEEPER_COLS).select(
+        KEEPER_COLS,
     )
 
     tunnel_df = (
-        tunnel_df.drop_nulls(subset=keeper_cols)
-        .select(keeper_cols)
+        tunnel_df.drop_nulls(subset=KEEPER_COLS)
+        .select(KEEPER_COLS)
         .sort("tunnel_score", descending=True)
         .head(1)
     )
 
     tunnel_df = _get_player_names(tunnel_df)  # add player names to the dataframe
-    _ = _plot_pitches(tunnel_df)  # this will save the plot to the assets folder
-    film_room_link1, film_room_link2 = _get_film_room_video(pitch=tunnel_df)
+    _ = _plot_pitches(
+        tunnel_df, yesterday=yesterday
+    )  # this will save the plot to the assets folder
+    film_room_link1, film_room_link2 = _get_film_room_video(
+        pitch=tunnel_df,
+        yesterday=yesterday,
+    )
     return dict(
+        yesterday=yesterday,
         pitcher_name=tunnel_df.select("name").item(),
         pitcher_id=tunnel_df.select("pitcher").item(),
         pitch_type=tunnel_df.select("pitch_name").item(),

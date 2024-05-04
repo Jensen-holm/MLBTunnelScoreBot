@@ -6,8 +6,18 @@ TUNNEL_PLOT_DIR = os.path.join(ASSET_DIR, "tunnel_plot.png")
 PROFILE_PIC_DIR = os.path.join(ASSET_DIR, "profile_pic.jpg")
 DEFAULT_PROFILE_PIC_DIR = os.path.join(ASSET_DIR, "default_profile_pic.png")
 
+BUILD_TWEET_ARGS: list[str] = [
+    "yesterday",
+    "pitcher_name",
+    "pitch_type",
+    "home_team",
+    "away_team",
+    "film_room_link1",
+    "film_room_link2",
+    "tunnel_score",
+]
 
-keeper_cols: list[str] = [
+KEEPER_COLS: list[str] = [
     "pitcher",
     "batter",
     "home_team",
@@ -52,27 +62,25 @@ keeper_cols: list[str] = [
 
 # 2024 mlb team official hashtags
 # https://lwosports.com/the-offical-mlb-hashtags-for-the-2024-season/
-hashtag_map = {
+HASHTAG_MAP: dict[str, str] = {
     "ARI": "DBacks",
+    "AZ": "DBacks",
     "ATL": "BravesCountry",
     "BAL": "Birdland",
     "BOS": "DirtyWater",
     "CHC": "YouHaveToSeeIt",
     "CWS": "WhiteSox",
-    "CHW": "WhiteSox",
     "CIN": "ATOBTTR",
     "CLE": "ForTheLand",
     "COL": "Rockies",
     "DET": "RepDetroit",
-    "FLA": "HomeOfBeisbol",
     "MIA": "HomeOfBeisbol",
-    "KAN": "WelcomeToTheCity",
+    "KC": "WelcomeToTheCity",
     "OAK": "Athletics",
     "STL": "ForTheLou",
     "HOU": "Relentless",
     "NYM": "LGM",
     "NYY": "RepBX",
-    "SFG": "SFGiants",
     "SF": "SFGiants",
     "PHI": "RingTheBell",
     "PIT": "LetsGoBucs",
@@ -82,9 +90,9 @@ hashtag_map = {
     "LAD": "LetsGoDodgers",
     "SD": "LetsGoPadres",
     "TB": "RaysUp",
-    "TBR": "RaysUp",
     "WSH": "NATITUDE",
     "SEA": "TridentsUp",
     "TEX": "StraightUpTX",
     "TOR": "TOTHECORE",
 }
+

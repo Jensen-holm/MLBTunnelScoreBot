@@ -1,15 +1,11 @@
-from typing import Optional
+import datetime
+from typing import Any
 import requests
 import logging
 
 from .x_api_info import api, client
-from .update import yesterdays_top_tunnel, YESTERDAY
-from .data import (
-    hashtag_map,
-    TUNNEL_PLOT_DIR,
-    PROFILE_PIC_DIR,
-    DEFAULT_PROFILE_PIC_DIR,
-)
+from .update import yesterdays_top_tunnel
+from .data import *
 
 
 def _update_profile_picture(player_mlbam_id: str | float) -> None:
@@ -36,22 +32,22 @@ def _build_tweet_text(**kwargs) -> str:
     assert kwargs is not None, "No kwargs passed to _build_tweet_text"
     assert isinstance(kwargs, dict), "kwargs is not a dictionary in _build_tweet_text"
 
-    pitcher_name = kwargs.get("pitcher_name")
-    pitch_type = kwargs.get("pitch_type")
-    home_team = kwargs.get("home_team")
-    away_team = kwargs.get("away_team")
-    pitch1_link = kwargs.get("film_room_link1")
-    pitch2_link = kwargs.get("film_room_link2")
-    tunnel_score = kwargs.get("tunnel_score")
+    for arg in BUILD_TWEET_ARGS:
+        assert arg in kwargs.keys(), f"{arg} not in build tweet kwargs."
 
-    title = f"TOP PITCH BY TUNNEL SCORE {YESTERDAY}"
-    t_score = f"{pitcher_name} {pitch_type}: {tunnel_score:.3f}"
-    team_hashtags = (
-        f"#{hashtag_map.get(home_team, home_team)} vs. "
-        f"#{hashtag_map.get(away_team, away_team)}"
-    )
-    link_text = f"MLB Film Room Links:\nprevious pitch: {pitch1_link}\ntunneled pitch: {pitch2_link}"
-    other_hashtags = f"#MLBTunnelBot #MLB #Baseball #{''.join(pitcher_name.split())}"
+    title = f"TOP PITCH BY TUNNEL SCORE {kwargs["yesterday"]}"
+    t_score = f"{kwargs["pitcher_name"]} {kwargs["pitch_type"]}: {kwargs["tunnel_score"]:.3f}"
+
+    home_hashtag = HASHTAG_MAP.get(kwargs["home_team"], None)
+    away_hashtag = HASHTAG_MAP.get(kwargs["away_team"], None)
+
+    assert home_hashtag is not None, f"home hashtag is None for {kwargs["home_team"]}"
+    assert away_hashtag is not None, f"away hashtag is None for {kwargs["away_team"]}"
+
+    team_hashtags = f"#{away_hashtag} @ #{home_hashtag}"
+
+    link_text = f"MLB Film Room Links:\nprevious pitch: {kwargs["film_room_link1"]}\ntunneled pitch: {kwargs["film_room_link2"]}"
+    other_hashtags = f"#MLBTunnelBot #MLB #Baseball #{''.join(kwargs["pitcher_name"].split())}"
     return "\n\n".join(
         [
             title,
@@ -63,21 +59,26 @@ def _build_tweet_text(**kwargs) -> str:
     )
 
 
-def write() -> bool:
-    pitch_info: Optional[dict[str, str | float]] = yesterdays_top_tunnel()
-
-    if pitch_info is None:
-        logging.warning(f"There must not have been any games on {YESTERDAY}")
-        return False
+def write(yesterday: datetime.date, _debug=False) -> None:
+    pitch_info: dict[str, Any] = yesterdays_top_tunnel(
+        yesterday=yesterday,
+    )
 
     tunnel_plot = api.media_upload(filename=TUNNEL_PLOT_DIR)
     pitcher_id = pitch_info.get("pitcher_id", None)
 
-    assert tunnel_plot is not None
-    assert pitcher_id is not None
+    assert pitcher_id is not None, f"pitcher_id is None."
+    assert isinstance(pitcher_id, int), f"pitcher_id is not an integer."
+    assert tunnel_plot is not None, f"tunnel_plot is None."
+
+    if _debug:
+        return
+
+    # TODO: handle twitter api exceptions
     _update_profile_picture(player_mlbam_id=pitcher_id)
+
     client.create_tweet(
         text=_build_tweet_text(kwargs=pitch_info),
         media_ids=[tunnel_plot.media_id],
     )
-    return True
+
