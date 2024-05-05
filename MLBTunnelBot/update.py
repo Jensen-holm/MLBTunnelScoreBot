@@ -1,15 +1,19 @@
+import warnings
+import os
+
+# ignore pybaseball tqdm progress bar and also ignore
+# the pandas FutureWarning that pybaseball causes
+os.environ["TQDM_DISABLE"] = "1"
+warnings.simplefilter(action="ignore", category=FutureWarning)
+
+
 import polars as pl
 import pandas as pd
 import numpy as np
-import pybaseball
 import datetime
+import pybaseball
 from matplotlib import axes
 from typing import Any
-
-import warnings
-
-# ignore pandas future warnings that are caused by pybaseball
-warnings.simplefilter(action="ignore", category=FutureWarning)
 
 from .exceptions import EmptyStatcastDFException
 from .plot_tunnel import plot_strike_zone
@@ -24,8 +28,11 @@ def _get_yesterdays_pitches(yesterdays_date: datetime.date) -> pl.DataFrame:
             verbose=False,
         )
     )
+
     if yesterday_df.is_empty():
-        raise EmptyStatcastDFException()
+        raise EmptyStatcastDFException(
+            "yesterday_df is empty in MLBTunnelBot.update.py"
+        )
 
     return yesterday_df
 

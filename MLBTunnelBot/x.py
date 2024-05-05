@@ -34,20 +34,25 @@ def _build_tweet_text(**kwargs) -> str:
 
     for arg in BUILD_TWEET_ARGS:
         assert arg in kwargs.keys(), f"{arg} not in build tweet kwargs."
+        assert kwargs.get(arg) is not None, f"{arg} is in kwargs, but is None."
 
-    title = f"TOP PITCH BY TUNNEL SCORE {kwargs["yesterday"]}"
-    t_score = f"{kwargs["pitcher_name"]} {kwargs["pitch_type"]}: {kwargs["tunnel_score"]:.3f}"
+    title = f"TOP PITCH BY TUNNEL SCORE {kwargs['yesterday']}"
+    t_score = (
+        f"{kwargs['pitcher_name']} {kwargs['pitch_type']}: {kwargs['tunnel_score']:.3f}"
+    )
 
     home_hashtag = HASHTAG_MAP.get(kwargs["home_team"], None)
     away_hashtag = HASHTAG_MAP.get(kwargs["away_team"], None)
 
-    assert home_hashtag is not None, f"home hashtag is None for {kwargs["home_team"]}"
-    assert away_hashtag is not None, f"away hashtag is None for {kwargs["away_team"]}"
+    assert home_hashtag is not None, f"home hashtag is None for {kwargs['home_team']}"
+    assert away_hashtag is not None, f"away hashtag is None for {kwargs['away_team']}"
 
     team_hashtags = f"#{away_hashtag} @ #{home_hashtag}"
 
-    link_text = f"MLB Film Room Links:\nprevious pitch: {kwargs["film_room_link1"]}\ntunneled pitch: {kwargs["film_room_link2"]}"
-    other_hashtags = f"#MLBTunnelBot #MLB #Baseball #{''.join(kwargs["pitcher_name"].split())}"
+    link_text = f"MLB Film Room Links:\nprevious pitch: {kwargs['film_room_link1']}\ntunneled pitch: {kwargs['film_room_link2']}"
+    other_hashtags = (
+        f"#MLBTunnelBot #MLB #Baseball #{''.join(kwargs['pitcher_name'].split())}"
+    )
     return "\n\n".join(
         [
             title,
@@ -81,4 +86,3 @@ def write(yesterday: datetime.date, _debug=False) -> None:
         text=_build_tweet_text(kwargs=pitch_info),
         media_ids=[tunnel_plot.media_id],
     )
-
