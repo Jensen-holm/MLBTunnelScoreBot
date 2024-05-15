@@ -9,11 +9,13 @@ import datetime
 import logging
 import time
 
-# configure logger
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s",
+)
 
 
-def mainloop() -> None:
+def main() -> None:
     next_iter_start_time = time.time() + (24 * 60 * 60)
     yesterday = datetime.date.today() - datetime.timedelta(days=1)
 
@@ -35,5 +37,23 @@ def mainloop() -> None:
 
 
 if __name__ == "__main__":
+
+    def _seconds_until_noon_tomorrow() -> float:
+        now = datetime.datetime.now()
+        tomorrow = now + datetime.timedelta(days=1)
+        noon_tmrw = datetime.datetime(
+            tomorrow.year,
+            tomorrow.month,
+            tomorrow.day,
+            12,
+            0,
+        )
+        return (noon_tmrw - now).total_seconds()
+
+    wait_time = _seconds_until_noon_tomorrow()
+    launch_time = datetime.datetime.now() + datetime.timedelta(seconds=wait_time)
+    logging.info(f"sleeping until launch at {launch_time}")
+    time.sleep(wait_time)
+
     while True:
-        mainloop()
+        main()
