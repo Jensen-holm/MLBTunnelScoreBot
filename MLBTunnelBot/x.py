@@ -18,11 +18,10 @@ from .update import yesterdays_top_tunnel
 from .consts import *
 
 
-def _update_profile_picture(player_mlbam_id: str | float) -> np.ndarray:
+def _get_player_headshot(player_mlbam_id: str | float) -> np.ndarray:
     link = f"https://img.mlbstatic.com/mlb-photos/image/upload/d_people:generic:headshot:67:current.png/w_426,q_auto:best/v1/people/{player_mlbam_id}/headshot/67/current"
 
     r = requests.get(link)
-    bad_response = False
     if r.status_code == 200:
         with open(PROFILE_PIC_DIR, "wb") as f:
             f.write(r.content)
@@ -30,11 +29,14 @@ def _update_profile_picture(player_mlbam_id: str | float) -> np.ndarray:
         logging.warning(
             f"Failed to update profile picture image from {link}. \nPlayer id: {player_mlbam_id}\nUsing Default."
         )
-        bad_response = True
 
-    api.update_profile_image(
-        filename=DEFAULT_PROFILE_PIC_DIR if bad_response else PROFILE_PIC_DIR,
-    )
+    # no longer updating profile picture. We moved towards putting the
+    # player headshot inside of the plot of the tunneled pitch. This function
+    # used to be called _update_profile_picture()
+
+    # api.update_profile_image(
+    # filename=DEFAULT_PROFILE_PIC_DIR if bad_response else PROFILE_PIC_DIR,
+    # )
 
     headshot_img = image.imread(PROFILE_PIC_DIR)
     return headshot_img
@@ -145,7 +147,7 @@ def write(yesterday: datetime.date, _debug=False) -> None:
     tunnel_df: Optional[pl.DataFrame] = pitch_info.get("tunnel_df", None)
     assert tunnel_df is not None
 
-    headshot_img = _update_profile_picture(player_mlbam_id=pitcher_id)
+    headshot_img = _get_player_headshot(player_mlbam_id=pitcher_id)
     _ = _plot_pitches(
         tunneled_pitch=tunnel_df,
         yesterday=yesterday,
