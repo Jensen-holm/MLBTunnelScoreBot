@@ -12,11 +12,9 @@ import pandas as pd
 import numpy as np
 import datetime
 import pybaseball
-from matplotlib import axes
 from typing import Any
 
 from .exceptions import EmptyStatcastDFException
-from .plot_tunnel import plot_strike_zone
 from .consts import KEEPER_COLS
 
 
@@ -105,59 +103,6 @@ def _compute_tunnel_score(statcast_pitches_df: pl.DataFrame) -> pl.DataFrame:
     )
 
 
-def _plot_pitches(tunneled_pitch: pl.DataFrame, yesterday: datetime.date) -> axes.Axes:
-    # input should be a polars dataframe with just one pitch
-    # and it s previous one
-
-    p1 = tunneled_pitch.select(
-        "game_date",
-        "at_bat_number",
-        "pitch_number",
-        "pitch_type",
-        "pitch_name",
-        "plate_x",
-        "plate_z",
-        "plate_x_no_movement",
-        "plate_z_no_movement",
-        "release_pos_x",
-        "release_pos_z",
-    )
-
-    pitch2 = tunneled_pitch.select(
-        "game_date",
-        "at_bat_number",
-        "prev_pitch_number",
-        "prev_pitch_type",
-        "prev_pitch_name",
-        "prev_plate_x",
-        "prev_plate_z",
-        "prev_plate_x_no_movement",
-        "prev_plate_z_no_movement",
-        "prev_release_pos_x",
-        "prev_release_pos_z",
-    )
-
-    p2 = pitch2.rename(
-        {
-            col: "_".join(col.split("_")[1:]) if col.startswith("prev") else col
-            for col in pitch2.columns
-        }
-    )
-
-    tunnel_score = tunneled_pitch.select("tunnel_score").item()
-    pitcher = tunneled_pitch.select("name").item()
-
-    fig = plot_strike_zone(
-        data=pitch2.join(
-            other=pl.concat([p1, p2]), on=["game_date", "at_bat_number"]
-        ).to_pandas(),
-        title=f"Best Pitch {yesterday} by Tunnel Score\n{pitcher} {tunnel_score:.2f}",
-        colorby="pitch_name",
-        annotation="pitch_type",
-    )
-    return fig
-
-
 def _get_film_room_video(
     pitch: pl.DataFrame, yesterday: datetime.date
 ) -> tuple[str, str]:
@@ -198,9 +143,12 @@ def yesterdays_top_tunnel(yesterday: datetime.date) -> dict[str, Any]:
     )
 
     tunnel_df = _get_player_names(tunnel_df)  # add player names to the dataframe
-    _ = _plot_pitches(
-        tunnel_df, yesterday=yesterday
-    )  # this will save the plot to the assets folder
+
+    # used to plot the pitches here and save the result to assets
+    # but now we pass tunnel_df into the dictionary this fn returns
+    # and it gets plotted in x.py so that we can add player headshot
+    # to the middle of the plot
+
     film_room_link1, film_room_link2 = _get_film_room_video(
         pitch=tunnel_df,
         yesterday=yesterday,
@@ -215,4 +163,5 @@ def yesterdays_top_tunnel(yesterday: datetime.date) -> dict[str, Any]:
         tunnel_score=tunnel_df.select("tunnel_score").item(),
         film_room_link1=film_room_link1,
         film_room_link2=film_room_link2,
+        tunnel_df=tunnel_df,
     )

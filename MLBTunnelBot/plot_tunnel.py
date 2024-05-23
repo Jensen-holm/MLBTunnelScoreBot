@@ -4,6 +4,8 @@ from typing import Optional
 import matplotlib.pyplot as plt
 from matplotlib import patches
 import matplotlib
+from matplotlib.offsetbox import OffsetImage, AnnotationBbox
+import numpy as np
 
 matplotlib.use("Agg")
 
@@ -14,6 +16,7 @@ from .consts import TUNNEL_PLOT_DIR
 # custom version of pybaseball plot_strike_zone function
 def plot_strike_zone(
     data: pd.DataFrame,
+    player_headshot_img: np.ndarray,  # matplot lib image of player headshot
     title: str = "",
     colorby: str = "pitch_type",
     legend_title: str = "",
@@ -48,7 +51,8 @@ def plot_strike_zone(
 
     # define Matplotlib figure and axis
     if axis is None:
-        fig, axis = plt.subplots()
+        # fig replaced with _
+        _, axis = plt.subplots()
 
     assert axis is not None
 
@@ -181,6 +185,11 @@ def plot_strike_zone(
         color="blue",
         label="Release Points",
     )
+
+    # draw the players headshot in the plot
+    image_box = OffsetImage(player_headshot_img, zoom=0.10)
+    ab = AnnotationBbox(image_box, xy=(0, 5.5), frameon=False)
+    axis.add_artist(ab)
 
     plt.legend()
     plt.title(title)

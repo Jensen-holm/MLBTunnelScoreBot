@@ -1,14 +1,24 @@
+#
+# Author: Jensen Holm
+# Date: 5/23/2024
+#
+
+import matplotlib.image as image
+import polars as pl
+import numpy as np
+
+from typing import Any, Optional
 import datetime
-from typing import Any
 import requests
 import logging
 
+from .plot_tunnel import plot_strike_zone
 from .x_api_info import api, client
 from .update import yesterdays_top_tunnel
 from .consts import *
 
 
-def _update_profile_picture(player_mlbam_id: str | float) -> None:
+def _update_profile_picture(player_mlbam_id: str | float) -> np.ndarray:
     link = f"https://img.mlbstatic.com/mlb-photos/image/upload/d_people:generic:headshot:67:current.png/w_426,q_auto:best/v1/people/{player_mlbam_id}/headshot/67/current"
 
     r = requests.get(link)
@@ -25,6 +35,9 @@ def _update_profile_picture(player_mlbam_id: str | float) -> None:
     api.update_profile_image(
         filename=DEFAULT_PROFILE_PIC_DIR if bad_response else PROFILE_PIC_DIR,
     )
+
+    headshot_img = image.imread(PROFILE_PIC_DIR)
+    return headshot_img
 
 
 def _build_tweet_text(**kwargs) -> str:
@@ -64,24 +77,88 @@ def _build_tweet_text(**kwargs) -> str:
     )
 
 
+def _plot_pitches(
+    tunneled_pitch: pl.DataFrame, yesterday: datetime.date, player_headshot: np.ndarray
+):
+    # input should be a polars dataframe with just one pitch
+    # and it s previous one
+
+    p1 = tunneled_pitch.select(
+        "game_date",
+        "at_bat_number",
+        "pitch_number",
+        "pitch_type",
+        "pitch_name",
+        "plate_x",
+        "plate_z",
+        "plate_x_no_movement",
+        "plate_z_no_movement",
+        "release_pos_x",
+        "release_pos_z",
+    )
+
+    pitch2 = tunneled_pitch.select(
+        "game_date",
+        "at_bat_number",
+        "prev_pitch_number",
+        "prev_pitch_type",
+        "prev_pitch_name",
+        "prev_plate_x",
+        "prev_plate_z",
+        "prev_plate_x_no_movement",
+        "prev_plate_z_no_movement",
+        "prev_release_pos_x",
+        "prev_release_pos_z",
+    )
+
+    p2 = pitch2.rename(
+        {
+            col: "_".join(col.split("_")[1:]) if col.startswith("prev") else col
+            for col in pitch2.columns
+        }
+    )
+
+    tunnel_score = tunneled_pitch.select("tunnel_score").item()
+    pitcher = tunneled_pitch.select("name").item()
+
+    # saves the plot to assets folder
+    _ = plot_strike_zone(
+        player_headshot_img=player_headshot,
+        data=pitch2.join(
+            other=pl.concat([p1, p2]), on=["game_date", "at_bat_number"]
+        ).to_pandas(),
+        title=f"Best Pitch {yesterday} by Tunnel Score\n{pitcher} {tunnel_score:.2f}",
+        colorby="pitch_name",
+        annotation="pitch_type",
+    )
+
+
 def write(yesterday: datetime.date, _debug=False) -> None:
     pitch_info: dict[str, Any] = yesterdays_top_tunnel(
         yesterday=yesterday,
     )
 
-    tunnel_plot = api.media_upload(filename=TUNNEL_PLOT_DIR)
-    pitcher_id = pitch_info.get("pitcher_id", None)
-
+    pitcher_id: int = pitch_info.get("pitcher_id", None)
     assert pitcher_id is not None, f"pitcher_id is None."
     assert isinstance(pitcher_id, int), f"pitcher_id is not an integer."
+
+    tunnel_df: Optional[pl.DataFrame] = pitch_info.get("tunnel_df", None)
+    assert tunnel_df is not None
+
+    headshot_img = _update_profile_picture(player_mlbam_id=pitcher_id)
+    _ = _plot_pitches(
+        tunneled_pitch=tunnel_df,
+        yesterday=yesterday,
+        player_headshot=headshot_img,
+    )
+
+    tunnel_plot = api.media_upload(filename=TUNNEL_PLOT_DIR)
     assert tunnel_plot is not None, f"tunnel_plot is None."
 
     if _debug:
         return
 
     # TODO: handle twitter api exceptions
-    _update_profile_picture(player_mlbam_id=pitcher_id)
-
     client.create_tweet(
         text=_build_tweet_text(kwargs=pitch_info),
         media_ids=[tunnel_plot.media_id],

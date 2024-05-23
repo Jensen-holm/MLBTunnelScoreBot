@@ -15,6 +15,7 @@ BUILD_TWEET_ARGS: list[str] = [
     "film_room_link1",
     "film_room_link2",
     "tunnel_score",
+    "tunnel_df",
 ]
 
 KEEPER_COLS: list[str] = [
