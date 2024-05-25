@@ -33,6 +33,8 @@ KEEPER_COLS: list[str] = [
     "prev_outs_when_up",
     "des",
     "prev_des",
+    "description",
+    "prev_description",
     "pitch_type",
     "prev_pitch_type",
     "pitch_name",

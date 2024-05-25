@@ -53,7 +53,7 @@ def _build_tweet_text(**kwargs) -> str:
 
     title = f"TOP PITCH BY TUNNEL SCORE {kwargs['yesterday']}"
     t_score = (
-        f"{kwargs['pitcher_name']} {kwargs['pitch_type']}: {kwargs['tunnel_score']:.3f}"
+        f"{kwargs['pitcher_name']} {kwargs['pitch_type']}: {kwargs['tunnel_score']:.3f}🔥"
     )
 
     home_hashtag = HASHTAG_MAP.get(kwargs["home_team"], None)
@@ -64,7 +64,18 @@ def _build_tweet_text(**kwargs) -> str:
 
     team_hashtags = f"#{away_hashtag} @ #{home_hashtag}"
 
-    link_text = f"MLB Film Room Links:\nprevious pitch: {kwargs['film_room_link1']}\ntunneled pitch: {kwargs['film_room_link2']}"
+    def _get_ab_result() -> str:
+        df = kwargs.get("tunnel_df", None)
+        balls = df.select("balls").item()
+        strikes = df.select("strikes").item()
+        pitch_result = df.select("description").item()
+        return "\n".join([
+            f"Count: {balls} - {strikes}",
+            f"Pitch Result: {pitch_result}",
+        ])
+
+    ab_result = _get_ab_result()
+    film_room_links = f"MLB Film Room Links:\nprevious pitch: {kwargs['film_room_link1']}\ntunneled pitch: {kwargs['film_room_link2']}"
     other_hashtags = (
         f"#MLBTunnelBot #MLB #Baseball #{''.join(kwargs['pitcher_name'].split())}"
     )
@@ -72,8 +83,9 @@ def _build_tweet_text(**kwargs) -> str:
         [
             title,
             t_score,
-            link_text,
+            ab_result,
             team_hashtags,
+            film_room_links,
             other_hashtags,
         ]
     )
@@ -161,7 +173,8 @@ def write(yesterday: datetime.date, _debug=False) -> None:
         return
 
     # TODO: handle twitter api exceptions
+    tweet_text = _build_tweet_text(kwargs=pitch_info)
     client.create_tweet(
-        text=_build_tweet_text(kwargs=pitch_info),
+        text=tweet_text,
         media_ids=[tunnel_plot.media_id],
     )
