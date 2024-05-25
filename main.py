@@ -20,7 +20,7 @@ def main() -> None:
     yesterday = datetime.date.today() - datetime.timedelta(days=1)
 
     try:
-        _ = MLBTunnelBot.write(yesterday=yesterday)
+        _ = MLBTunnelBot.write(yesterday=yesterday, _debug=False)
         logging.info(f"Successful write for {yesterday}")
 
     except MLBTunnelBot.EmptyStatcastDFException as e:
@@ -37,23 +37,5 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-
-    def _seconds_until_noon_tomorrow() -> float:
-        now = datetime.datetime.now()
-        tomorrow = now + datetime.timedelta(days=1)
-        noon_tmrw = datetime.datetime(
-            tomorrow.year,
-            tomorrow.month,
-            tomorrow.day,
-            12,
-            0,
-        )
-        return (noon_tmrw - now).total_seconds()
-
-    wait_time = _seconds_until_noon_tomorrow()
-    launch_time = datetime.datetime.now() + datetime.timedelta(seconds=wait_time)
-    logging.info(f"sleeping until launch at {launch_time}")
-    time.sleep(wait_time)
-
     while True:
         main()

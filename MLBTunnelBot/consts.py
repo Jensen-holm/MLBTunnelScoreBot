@@ -15,6 +15,7 @@ BUILD_TWEET_ARGS: list[str] = [
     "film_room_link1",
     "film_room_link2",
     "tunnel_score",
+    "tunnel_df",
 ]
 
 KEEPER_COLS: list[str] = [
@@ -32,6 +33,8 @@ KEEPER_COLS: list[str] = [
     "prev_outs_when_up",
     "des",
     "prev_des",
+    "description",
+    "prev_description",
     "pitch_type",
     "prev_pitch_type",
     "pitch_name",
