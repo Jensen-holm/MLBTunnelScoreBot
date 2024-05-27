@@ -52,9 +52,7 @@ def _build_tweet_text(**kwargs) -> str:
         assert kwargs.get(arg) is not None, f"{arg} is in kwargs, but is None."
 
     title = f"TOP PITCH BY TUNNEL SCORE {kwargs['yesterday']}"
-    t_score = (
-        f"{kwargs['pitcher_name']} {kwargs['pitch_type']}: {kwargs['tunnel_score']:.3f}🔥"
-    )
+    t_score = f"{kwargs['pitcher_name']} {kwargs['pitch_type']}: {kwargs['tunnel_score']:.3f}🔥"
 
     home_hashtag = HASHTAG_MAP.get(kwargs["home_team"], None)
     away_hashtag = HASHTAG_MAP.get(kwargs["away_team"], None)
@@ -66,27 +64,18 @@ def _build_tweet_text(**kwargs) -> str:
 
     def _get_ab_result() -> str:
         df = kwargs.get("tunnel_df", None)
-        balls = df.select("balls").item()
-        strikes = df.select("strikes").item()
-        pitch_result = df.select("description").item()
-        return "\n".join([
-            f"Count: {balls} - {strikes}",
-            f"Pitch Result: {pitch_result}",
-        ])
+        long_des = df.select("des").item()
+        return f"AB Result: {long_des}"
 
-    ab_result = _get_ab_result()
+    # ab_result = _get_ab_result()
     film_room_links = f"MLB Film Room Links:\nprevious pitch: {kwargs['film_room_link1']}\ntunneled pitch: {kwargs['film_room_link2']}"
-    other_hashtags = (
-        f"#MLBTunnelBot #MLB #Baseball #{''.join(kwargs['pitcher_name'].split())}"
-    )
     return "\n\n".join(
         [
             title,
             t_score,
-            ab_result,
+            #ab_result,
             team_hashtags,
             film_room_links,
-            other_hashtags,
         ]
     )
 
@@ -147,7 +136,7 @@ def _plot_pitches(
     )
 
 
-def write(yesterday: datetime.date, _debug=False) -> None:
+def write(yesterday: datetime.date, _debug=False) -> Optional[str]:
     pitch_info: dict[str, Any] = yesterdays_top_tunnel(
         yesterday=yesterday,
     )
@@ -174,7 +163,10 @@ def write(yesterday: datetime.date, _debug=False) -> None:
 
     # TODO: handle twitter api exceptions
     tweet_text = _build_tweet_text(kwargs=pitch_info)
+
     client.create_tweet(
         text=tweet_text,
         media_ids=[tunnel_plot.media_id],
     )
+
+    return tweet_text

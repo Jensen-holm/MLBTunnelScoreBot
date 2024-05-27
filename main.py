@@ -20,8 +20,8 @@ def main() -> None:
     yesterday = datetime.date.today() - datetime.timedelta(days=1)
 
     try:
-        _ = MLBTunnelBot.write(yesterday=yesterday, _debug=False)
-        logging.info(f"Successful write for {yesterday}")
+        tweet = MLBTunnelBot.write(yesterday=yesterday)
+        logging.info(f"Successful write for {yesterday}\n{tweet}")
 
     except MLBTunnelBot.EmptyStatcastDFException as e:
         logging.error(f"Skipping {yesterday} due to empty statcast data: {e}")
