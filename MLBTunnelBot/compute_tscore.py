@@ -22,8 +22,7 @@ from typing import Any
 from .exceptions import EmptyStatcastDFException
 from .consts import KEEPER_COLS
 
-
-MLB_FILMROOM_URL = "https://www.mlb.com/video/?q=Season+%3D+%5B{year}%5D+AND+Date+%3D+%5B%22{yesterday}%22%5D+AND+PitcherId+%3D+%5B{pitcher_id}%5D+AND+TopBottom+%3D+%5B%22{top_bot}%22%5D+AND+Outs+%3D+%5B{outs}%5D+AND+Balls+%3D+%5B{balls}%5D+AND+Strikes+%3D+%5B{strikes}%5D+AND+Inning+%3D+%5B{inning}%5D+Order+By+Timestamp+DESC"
+MLB_FILMROOM_URL = "https://www.mlb.com/video/?q=Season+%3D+%5B{year}%5D+AND+Date+%3D+%5B%22{yesterday}%22%5D+AND+PitcherId+%3D+%5B{pitcher_id}%5D+AND+TopBottom+%3D+%5B%22{top_bot}%22%5D+AND+Outs+%3D+%5B{outs}%5D+AND+Balls+%3D+%5B{balls}%5D+AND+Strikes+%3D+%5B{strikes}%5D+AND+Inning+%3D+%5B{inning}%5D+AND+PlayerId+%3D+%5B{hitter_id}%5D+AND+PitchType+%3D+%5B%22{pitch_type}%22%5D+Order+By+Timestamp+DESC"
 
 
 def _get_yesterdays_pitches(yesterdays_date: datetime.date) -> pl.DataFrame:
@@ -61,14 +60,24 @@ def _get_player_names(pitches_df: pl.DataFrame) -> pl.DataFrame:
         [pitcher["pitcher"] for pitcher in pitches_df.iter_rows(named=True)],
         key_type="mlbam",
     )
-    pitchers["name"] = (
+
+    hitters = pybaseball.playerid_reverse_lookup(
+        [batter["batter"] for batter in pitches_df.iter_rows(named=True)],
+        key_type="mlbam",
+    )
+    pitchers["pitcher_name"] = (
         pitchers["name_first"] + " " + pitchers["name_last"]
     ).str.title()
 
-    subset = pitchers[["key_mlbam", "name"]]
-    assert isinstance(
-        subset, pd.DataFrame
-    ), "name subset is not a dataframe."  # just to make my editor happy
+    pitchers["hitter_name"] = (
+        hitters["name_first"] + " " + hitters["name_last"]
+    ).str.title()
+
+    pitchers["hitter_id"] = hitters["key_mlbam"]
+    subset = pitchers[["key_mlbam", "pitcher_name", "hitter_name", "hitter_id"]]
+
+    assert isinstance(subset, pd.DataFrame), "name subset is not a dataframe."
+
     return pitches_df.join(
         other=pl.from_pandas(subset),
         left_on="pitcher",
@@ -114,16 +123,19 @@ def _compute_tunnel_score(statcast_pitches_df: pl.DataFrame) -> pl.DataFrame:
     )
 
 
-def _get_film_room_video(
+def _get_film_room_videos(
     pitch: pl.DataFrame, yesterday: datetime.date
 ) -> tuple[str, str]:
     inning = pitch.select("inning").item()
-    top_bot = pitch.select("inning_topbot").item()  # needs to be either TOP or BOT
+    top_bot = pitch.select("inning_topbot").item().upper() # needs to be either TOP or BOT
     balls = pitch.select("balls").item()
     strikes = pitch.select("strikes").item()
     pitcher_id = pitch.select("pitcher").item()
     outs = pitch.select("outs_when_up").item()
+    pitch_type = pitch.select("pitch_type").item()
+    hitter_id = pitch.select("hitter_id").item()
 
+    prev_pitch_type = pitch.select("prev_pitch_type").item()
     prev_outs = pitch.select("prev_outs_when_up").item()  # shouldn't this be the same ?
     prev_strikes = pitch.select("prev_strikes").item()
     prev_balls = pitch.select("prev_balls").item()
@@ -134,21 +146,25 @@ def _get_film_room_video(
         year=year,
         yesterday=yesterday,
         inning=inning,
-        top_bot=top_bot.upper(),
+        top_bot=top_bot,
         balls=balls,
         strikes=strikes,
         pitcher_id=pitcher_id,
         outs=outs,
+        pitch_type=pitch_type,
+        hitter_id=hitter_id,
     )
     previous_filmroom_link = MLB_FILMROOM_URL.format(
         year=year,
         yesterday=yesterday,
         inning=inning,
-        top_bot=top_bot.upper(),
+        top_bot=top_bot,
         balls=prev_balls,
         strikes=prev_strikes,
         pitcher_id=pitcher_id,
         outs=prev_outs,
+        pitch_type=prev_pitch_type,
+        hitter_id=hitter_id,
     )
     return tunneled_filmroom_link, previous_filmroom_link
 
@@ -178,18 +194,20 @@ def yesterdays_top_tunnel(yesterday: datetime.date) -> dict[str, Any]:
     # and it gets plotted in x.py so that we can add player headshot
     # to the middle of the plot
 
-    tunneled_filmroom_link, prev_filmroom_link = _get_film_room_video(
+    tunneled_filmroom_link, prev_filmroom_link = _get_film_room_videos(
         pitch=tunnel_df,
         yesterday=yesterday,
     )
     return dict(
         yesterday=yesterday,
-        pitcher_name=tunnel_df.select("name").item(),
+        pitcher_name=tunnel_df.select("pitcher_name").item(),
         pitcher_id=tunnel_df.select("pitcher").item(),
         pitch_type=tunnel_df.select("pitch_name").item(),
         home_team=tunnel_df.select("home_team").item(),
         away_team=tunnel_df.select("away_team").item(),
         tunnel_score=tunnel_df.select("tunnel_score").item(),
+        hitter_id=tunnel_df.select("hitter_id").item(),
+        hitter_name=tunnel_df.select("hitter_name").item(),
         tunneled_filmroom_link=tunneled_filmroom_link,
         prev_filmroom_link=prev_filmroom_link,
         tunnel_df=tunnel_df,

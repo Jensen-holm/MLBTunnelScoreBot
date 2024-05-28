@@ -63,14 +63,12 @@ def _build_tweet_text(**kwargs) -> str:
 
     team_hashtags = f"#{away_hashtag} @ #{home_hashtag}"
     film_room_links = f"MLB Film Room Links:\nprevious pitch: {kwargs['prev_filmroom_link']}\ntunneled pitch: {kwargs['tunneled_filmroom_link']}"
-    other_hashtags = "#Baseball #MLB #Beisbol #Pitching"
     return "\n\n".join(
         [
             title,
             t_score,
             team_hashtags,
             film_room_links,
-            other_hashtags,
         ]
     )
 
@@ -117,7 +115,7 @@ def _plot_pitches(
     )
 
     tunnel_score = tunneled_pitch.select("tunnel_score").item()
-    pitcher = tunneled_pitch.select("name").item()
+    pitcher = tunneled_pitch.select("pitcher_name").item()
 
     # saves the plot to assets folder
     _ = plot_strike_zone(
