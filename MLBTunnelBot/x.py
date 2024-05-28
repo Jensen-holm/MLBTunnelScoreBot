@@ -53,8 +53,7 @@ def _build_tweet_text(**kwargs) -> str:
         assert kwargs.get(arg) is not None, f"{arg} is in kwargs, but is None."
 
     title = f"TOP PITCH BY TUNNEL SCORE {kwargs['yesterday']}"
-    t_score = f"{kwargs['pitcher_name']} {kwargs['pitch_type']}: {kwargs['tunnel_score']:.3f}🔥"
-
+    t_score = f"{kwargs['pitcher_name']} {kwargs['pitch_name']}: {kwargs['tunnel_score']:.3f}🔥"
     home_hashtag = HASHTAG_MAP.get(kwargs["home_team"], None)
     away_hashtag = HASHTAG_MAP.get(kwargs["away_team"], None)
 

@@ -202,7 +202,7 @@ def yesterdays_top_tunnel(yesterday: datetime.date) -> dict[str, Any]:
         yesterday=yesterday,
         pitcher_name=tunnel_df.select("pitcher_name").item(),
         pitcher_id=tunnel_df.select("pitcher").item(),
-        pitch_type=tunnel_df.select("pitch_name").item(),
+        pitch_name=tunnel_df.select("pitch_name").item(),
         home_team=tunnel_df.select("home_team").item(),
         away_team=tunnel_df.select("away_team").item(),
         tunnel_score=tunnel_df.select("tunnel_score").item(),

@@ -1,7 +1,7 @@
 matplotlib==3.8.4
 numpy==1.26.4
 pandas==2.2.2
-polars==0.20.23
+polars==0.20.30
 pybaseball==2.2.7
-Requests==2.31.0
+Requests==2.32.2
 tweepy==4.14.0

@@ -9,7 +9,7 @@ DEFAULT_PROFILE_PIC_DIR = os.path.join(ASSET_DIR, "default_profile_pic.png")
 BUILD_TWEET_ARGS: list[str] = [
     "yesterday",
     "pitcher_name",
-    "pitch_type",
+    "pitch_name",
     "home_team",
     "away_team",
     "tunneled_filmroom_link",
