@@ -12,8 +12,8 @@ BUILD_TWEET_ARGS: list[str] = [
     "pitch_type",
     "home_team",
     "away_team",
-    "film_room_link1",
-    "film_room_link2",
+    "tunneled_filmroom_link",
+    "prev_filmroom_link",
     "tunnel_score",
     "tunnel_df",
 ]

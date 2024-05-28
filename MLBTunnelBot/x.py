@@ -14,7 +14,7 @@ import logging
 
 from .plot_tunnel import plot_strike_zone
 from .x_api_info import api, client
-from .update import yesterdays_top_tunnel
+from .compute_tscore import yesterdays_top_tunnel
 from .consts import *
 
 HEADSHOT_BASE_URL = "https://img.mlbstatic.com/mlb-photos/image/upload/d_people:generic:headshot:67:current.png/w_426,q_auto:best/v1/people/{player_mlbam_id}/headshot/67/current"
@@ -62,7 +62,7 @@ def _build_tweet_text(**kwargs) -> str:
     assert away_hashtag is not None, f"away hashtag is None for {kwargs['away_team']}"
 
     team_hashtags = f"#{away_hashtag} @ #{home_hashtag}"
-    film_room_links = f"MLB Film Room Links:\nprevious pitch: {kwargs['film_room_link1']}\ntunneled pitch: {kwargs['film_room_link2']}"
+    film_room_links = f"MLB Film Room Links:\nprevious pitch: {kwargs['prev_filmroom_link']}\ntunneled pitch: {kwargs['tunneled_filmroom_link']}"
     return "\n\n".join(
         [
             title,
@@ -129,7 +129,7 @@ def _plot_pitches(
     )
 
 
-def write(yesterday: datetime.date, _debug=False) -> Optional[str]:
+def write(yesterday: datetime.date, _debug=False) -> str:
     pitch_info: dict[str, Any] = yesterdays_top_tunnel(
         yesterday=yesterday,
     )

@@ -51,7 +51,7 @@ def _tie_pitches_to_previous(pitches_df: pl.DataFrame) -> pl.DataFrame:
 
     for col_name in sorted_pitches.columns:
         sorted_pitches = sorted_pitches.with_columns(
-            pl.col(col_name).shift(1).over("pitcher").alias(f"prev_{col_name}")
+            pl.col(col_name).shift(-1).over("pitcher").alias(f"prev_{col_name}")
         )
     return sorted_pitches
 
@@ -130,7 +130,7 @@ def _get_film_room_video(
 
     year = yesterday.year
 
-    link1 = MLB_FILMROOM_URL.format(
+    tunneled_filmroom_link = MLB_FILMROOM_URL.format(
         year=year,
         yesterday=yesterday,
         inning=inning,
@@ -140,7 +140,7 @@ def _get_film_room_video(
         pitcher_id=pitcher_id,
         outs=outs,
     )
-    link2 = MLB_FILMROOM_URL.format(
+    previous_filmroom_link = MLB_FILMROOM_URL.format(
         year=year,
         yesterday=yesterday,
         inning=inning,
@@ -150,7 +150,7 @@ def _get_film_room_video(
         pitcher_id=pitcher_id,
         outs=prev_outs,
     )
-    return link1, link2
+    return tunneled_filmroom_link, previous_filmroom_link
 
 
 def yesterdays_top_tunnel(yesterday: datetime.date) -> dict[str, Any]:
@@ -178,7 +178,7 @@ def yesterdays_top_tunnel(yesterday: datetime.date) -> dict[str, Any]:
     # and it gets plotted in x.py so that we can add player headshot
     # to the middle of the plot
 
-    film_room_link1, film_room_link2 = _get_film_room_video(
+    tunneled_filmroom_link, prev_filmroom_link = _get_film_room_video(
         pitch=tunnel_df,
         yesterday=yesterday,
     )
@@ -190,7 +190,7 @@ def yesterdays_top_tunnel(yesterday: datetime.date) -> dict[str, Any]:
         home_team=tunnel_df.select("home_team").item(),
         away_team=tunnel_df.select("away_team").item(),
         tunnel_score=tunnel_df.select("tunnel_score").item(),
-        film_room_link1=film_room_link1,
-        film_room_link2=film_room_link2,
+        tunneled_filmroom_link=tunneled_filmroom_link,
+        prev_filmroom_link=prev_filmroom_link,
         tunnel_df=tunnel_df,
     )
