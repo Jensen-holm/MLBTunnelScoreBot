@@ -1,3 +1,8 @@
+#
+# Author: Jensen Holm
+# Date: 05/28/2024
+#
+
 import warnings
 import os
 
@@ -16,6 +21,9 @@ from typing import Any
 
 from .exceptions import EmptyStatcastDFException
 from .consts import KEEPER_COLS
+
+
+MLB_FILMROOM_URL = "https://www.mlb.com/video/?q=Season+%3D+%5B{year}%5D+AND+Date+%3D+%5B%22{yesterday}%22%5D+AND+PitcherId+%3D+%5B{pitcher_id}%5D+AND+TopBottom+%3D+%5B%22{top_bot}%22%5D+AND+Outs+%3D+%5B{outs}%5D+AND+Balls+%3D+%5B{balls}%5D+AND+Strikes+%3D+%5B{strikes}%5D+AND+Inning+%3D+%5B{inning}%5D+Order+By+Timestamp+DESC"
 
 
 def _get_yesterdays_pitches(yesterdays_date: datetime.date) -> pl.DataFrame:
@@ -81,7 +89,7 @@ def _compute_tunnel_score(statcast_pitches_df: pl.DataFrame) -> pl.DataFrame:
         prev_plate_z_no_movement=pl.col("prev_plate_z") - pl.col("prev_pfx_z"),
     )
 
-    return statcast_with_no_move.with_columns(
+    statcast_with_distances = statcast_with_no_move.with_columns(
         tunnel_distance=_euclidean_distance(
             point1=(pl.col("plate_x_no_movement"), pl.col("plate_z_no_movement")),
             point2=(
@@ -97,7 +105,10 @@ def _compute_tunnel_score(statcast_pitches_df: pl.DataFrame) -> pl.DataFrame:
             point1=(pl.col("release_pos_x"), pl.col("release_pos_z")),
             point2=(pl.col("prev_release_pos_x"), pl.col("release_pos_z")),
         ),
-    ).with_columns(
+    )
+
+    # tunnel score = (actual_distance / tunnel_distance) - release distance
+    return statcast_with_distances.with_columns(
         tunnel_score=(pl.col("actual_distance") / pl.col("tunnel_distance"))
         - pl.col("release_distance"),
     )
@@ -113,15 +124,33 @@ def _get_film_room_video(
     pitcher_id = pitch.select("pitcher").item()
     outs = pitch.select("outs_when_up").item()
 
-    prev_outs = pitch.select("prev_outs_when_up").item()
+    prev_outs = pitch.select("prev_outs_when_up").item()  # shouldn't this be the same ?
     prev_strikes = pitch.select("prev_strikes").item()
     prev_balls = pitch.select("prev_balls").item()
 
     year = yesterday.year
-    return (
-        f"https://www.mlb.com/video/?q=Season+%3D+%5B{year}%5D+AND+Date+%3D+%5B%22{yesterday}%22%5D+AND+PitcherId+%3D+%5B{pitcher_id}%5D+AND+TopBottom+%3D+%5B%22{top_bot.upper()}%22%5D+AND+Outs+%3D+%5B{outs}%5D+AND+Balls+%3D+%5B{balls}%5D+AND+Strikes+%3D+%5B{strikes}%5D+AND+Inning+%3D+%5B{inning}%5D+Order+By+Timestamp+DESC",
-        f"https://www.mlb.com/video/?q=Season+%3D+%5B{year}%5D+AND+Date+%3D+%5B%22{yesterday}%22%5D+AND+PitcherId+%3D+%5B{pitcher_id}%5D+AND+TopBottom+%3D+%5B%22{top_bot.upper()}%22%5D+AND+Outs+%3D+%5B{prev_outs}%5D+AND+Balls+%3D+%5B{prev_balls}%5D+AND+Strikes+%3D+%5B{prev_strikes}%5D+AND+Inning+%3D+%5B{inning}%5D+Order+By+Timestamp+DESC",
+
+    link1 = MLB_FILMROOM_URL.format(
+        year=year,
+        yesterday=yesterday,
+        inning=inning,
+        top_bot=top_bot.upper(),
+        balls=balls,
+        strikes=strikes,
+        pitcher_id=pitcher_id,
+        outs=outs,
     )
+    link2 = MLB_FILMROOM_URL.format(
+        year=year,
+        yesterday=yesterday,
+        inning=inning,
+        top_bot=top_bot.upper(),
+        balls=prev_balls,
+        strikes=prev_strikes,
+        pitcher_id=pitcher_id,
+        outs=prev_outs,
+    )
+    return link1, link2
 
 
 def yesterdays_top_tunnel(yesterday: datetime.date) -> dict[str, Any]:

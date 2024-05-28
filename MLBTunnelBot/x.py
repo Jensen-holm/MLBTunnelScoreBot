@@ -17,23 +17,24 @@ from .x_api_info import api, client
 from .update import yesterdays_top_tunnel
 from .consts import *
 
+HEADSHOT_BASE_URL = "https://img.mlbstatic.com/mlb-photos/image/upload/d_people:generic:headshot:67:current.png/w_426,q_auto:best/v1/people/{player_mlbam_id}/headshot/67/current"
+
 
 def _get_player_headshot(player_mlbam_id: str | float) -> np.ndarray:
-    link = f"https://img.mlbstatic.com/mlb-photos/image/upload/d_people:generic:headshot:67:current.png/w_426,q_auto:best/v1/people/{player_mlbam_id}/headshot/67/current"
+    url = HEADSHOT_BASE_URL.format(player_mlbam_id=player_mlbam_id)
 
-    r = requests.get(link)
+    r = requests.get(url)
     if r.status_code == 200:
         with open(PROFILE_PIC_DIR, "wb") as f:
             f.write(r.content)
     else:
         logging.warning(
-            f"Failed to update profile picture image from {link}. \nPlayer id: {player_mlbam_id}\nUsing Default."
+            f"Failed to update profile picture image from {url}. \nPlayer id: {player_mlbam_id}\nUsing Default."
         )
 
     # no longer updating profile picture. We moved towards putting the
     # player headshot inside of the plot of the tunneled pitch. This function
     # used to be called _update_profile_picture()
-
     # api.update_profile_image(
     # filename=DEFAULT_PROFILE_PIC_DIR if bad_response else PROFILE_PIC_DIR,
     # )
@@ -61,19 +62,11 @@ def _build_tweet_text(**kwargs) -> str:
     assert away_hashtag is not None, f"away hashtag is None for {kwargs['away_team']}"
 
     team_hashtags = f"#{away_hashtag} @ #{home_hashtag}"
-
-    def _get_ab_result() -> str:
-        df = kwargs.get("tunnel_df", None)
-        long_des = df.select("des").item()
-        return f"AB Result: {long_des}"
-
-    # ab_result = _get_ab_result()
     film_room_links = f"MLB Film Room Links:\nprevious pitch: {kwargs['film_room_link1']}\ntunneled pitch: {kwargs['film_room_link2']}"
     return "\n\n".join(
         [
             title,
             t_score,
-            #ab_result,
             team_hashtags,
             film_room_links,
         ]
@@ -158,11 +151,10 @@ def write(yesterday: datetime.date, _debug=False) -> Optional[str]:
     tunnel_plot = api.media_upload(filename=TUNNEL_PLOT_DIR)
     assert tunnel_plot is not None, f"tunnel_plot is None."
 
-    if _debug:
-        return
-
-    # TODO: handle twitter api exceptions
     tweet_text = _build_tweet_text(kwargs=pitch_info)
+
+    if _debug:
+        return tweet_text
 
     client.create_tweet(
         text=tweet_text,

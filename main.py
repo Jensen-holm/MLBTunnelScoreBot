@@ -23,14 +23,8 @@ def main() -> None:
         tweet = MLBTunnelBot.write(yesterday=yesterday)
         logging.info(f"Successful write for {yesterday}\n{tweet}")
 
-    except MLBTunnelBot.EmptyStatcastDFException as e:
-        logging.error(f"Skipping {yesterday} due to empty statcast data: {e}")
-
-    except AssertionError as e:
-        logging.error(f"Skipping {yesterday} due to assertion error: {e}.")
-
     except Exception as e:
-        logging.error(f"Unexpected issue for {yesterday}'s write: {e}.")
+        logging.error(f"Error for {yesterday} due to exception: {e.__class__} -> {e}")
 
     finally:
         time.sleep(next_iter_start_time - time.time())
