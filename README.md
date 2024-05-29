@@ -9,4 +9,16 @@ The MLB-Tunnel-Bot is a X bot that each day during the MLB season ...
 
 You can find the MLB-Tunnel-Bot on X at [this link](https://twitter.com/MLBTunnelBot)
 
-The profile picture updates each day with the pitcher who threw the best tunneled pitch that day.
+### Build Locally
+
+**Makefile & Docker**
+  1. `make build`
+  2. `make run`
+
+**Python virtual environment**
+  (requires [virtualenv package](https://pypi.org/project/virtualenv/))
+  1. `virtualenv venv` 
+  2. `source venv/bin/activate`
+  3. `pip3 install -r requirements.txt`
+  4. `python3 main.py`
+
