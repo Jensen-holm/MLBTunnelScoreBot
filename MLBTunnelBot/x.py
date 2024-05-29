@@ -21,6 +21,19 @@ HEADSHOT_BASE_URL = "https://img.mlbstatic.com/mlb-photos/image/upload/d_people:
 
 
 def _get_player_headshot(player_mlbam_id: str | float) -> np.ndarray:
+    """
+    Scrapes the players headshot with the given mlbam id from the
+    HEADSHOT_BASE_URL url. This function both returns the numpy array
+    of image data from the players headshot as well as saves the image
+    to the assets directory under the name "assets/profile_pic.jpg"
+
+    @params
+        player_mlbam_id: string of the players mlbam id.
+
+    @return
+        numpy array of the image data from the players headshot.
+    """
+
     url = HEADSHOT_BASE_URL.format(player_mlbam_id=player_mlbam_id)
 
     r = requests.get(url)
@@ -44,6 +57,20 @@ def _get_player_headshot(player_mlbam_id: str | float) -> np.ndarray:
 
 
 def _build_tweet_text(**kwargs) -> str:
+    """
+    takes in the gathered information from the pitch
+    with the higest tunnel score and builds the tweet
+    text using this information.
+
+    @params
+        kwargs: dictionary of key word arguments which
+                must have the specified keys from consts.BUILD_TWEET_ARGS
+                or else an assertion error will be raised.
+
+    @returns
+        final tweet text in string format.
+    """
+
     kwargs = kwargs.get("kwargs", None)
     assert kwargs is not None, "No kwargs passed to _build_tweet_text"
     assert isinstance(kwargs, dict), "kwargs is not a dictionary in _build_tweet_text"
@@ -74,7 +101,21 @@ def _build_tweet_text(**kwargs) -> str:
 
 def _plot_pitches(
     tunneled_pitch: pl.DataFrame, yesterday: datetime.date, player_headshot: np.ndarray
-):
+) -> None:
+    """
+    Takes the collected information about the best tunneled pitch and makes a matplotlib
+    plot using functions from MLBTunnelBot/plot_tunnel.py and saves it to the assets folder
+    under the name "assets/tunnel_plot.png".
+
+    @params
+        tunneled_pitch: polars dataframe containing statcast pitch data from the best
+                        tunneled pitch and data from the previous one.
+        yesterday: datetime.date object for yesterday's date (date of the pitch).
+        player_headshot: numpy array of data for the players headshot image
+
+    @returns
+        None
+    """
     # input should be a polars dataframe with just one pitch
     # and it s previous one
 
@@ -129,6 +170,18 @@ def _plot_pitches(
 
 
 def write(yesterday: datetime.date, _debug=False) -> str:
+    """
+    serves as the main function for this entire program.
+    write() will post the tweet to x depending on the value
+    of the _debug parameter.
+
+    @params
+        yesterday: datetime.date object of yesterday's date.
+        _debug: boolean value, if true will not post to x.
+
+    @returns
+        the generated tweet text.
+    """
     pitch_info: dict[str, Any] = yesterdays_top_tunnel(
         yesterday=yesterday,
     )

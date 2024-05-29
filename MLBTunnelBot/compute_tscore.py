@@ -26,6 +26,15 @@ MLB_FILMROOM_URL = "https://www.mlb.com/video/?q=Season+%3D+%5B{year}%5D+AND+Dat
 
 
 def _get_yesterdays_pitches(yesterdays_date: datetime.date) -> pl.DataFrame:
+    """
+    Retrieves yesterday's statcast pitch data using pybaseball's statcast function.
+
+    @params
+        yesterdays_date: datetime.date object for yesterdays date
+
+    @returns
+        polars dataframe containing yesterdays statcast pitch data.
+    """
     yesterday_df: pl.DataFrame = pl.from_pandas(
         pybaseball.statcast(
             start_dt=f"{yesterdays_date}",
@@ -43,6 +52,19 @@ def _get_yesterdays_pitches(yesterdays_date: datetime.date) -> pl.DataFrame:
 
 
 def _tie_pitches_to_previous(pitches_df: pl.DataFrame) -> pl.DataFrame:
+    """
+    Takes in a polars dataframe of statcast pitch data and sorts it so that
+    we have the pitches in descending order from most recently thrown to oldest
+    thrown. Then, we add columns for the previous pitch in the at bat.
+
+    @params
+        pitches_df: polars dataframe of statcast pitch data.
+
+    @returns
+        A new polars dataframe sorted by game date, pitcher id, at bat number
+        and pitch number that has added columns containing data from the previous
+        pitch thrown in an at bat.
+    """
     sorted_pitches = pitches_df.sort(
         ["game_date", "pitcher", "at_bat_number", "pitch_number"],
         descending=True,
@@ -50,12 +72,28 @@ def _tie_pitches_to_previous(pitches_df: pl.DataFrame) -> pl.DataFrame:
 
     for col_name in sorted_pitches.columns:
         sorted_pitches = sorted_pitches.with_columns(
-            pl.col(col_name).shift(-1).over("pitcher").alias(f"prev_{col_name}")
+            pl.col(col_name)
+            .shift(-1)
+            .over(["pitcher", "at_bat_number"])
+            .alias(f"prev_{col_name}")
         )
     return sorted_pitches
 
 
 def _get_player_names(pitches_df: pl.DataFrame) -> pl.DataFrame:
+    """
+    Takes a polars dataframe of statcast pitch data without player names
+    and adds the player names to it in new columns "pitcher_name" and "hitter_name"
+    using pybaseball functions for reverse player lookup and the mlbam id's
+    for the player.
+
+    @params
+        pitches_df: polars dataframe of statcast pitch data without
+                    the player names.
+
+    @returns
+        the same polars dataframe but with player names added to it.
+    """
     pitchers = pybaseball.playerid_reverse_lookup(
         [pitcher["pitcher"] for pitcher in pitches_df.iter_rows(named=True)],
         key_type="mlbam",
@@ -86,7 +124,29 @@ def _get_player_names(pitches_df: pl.DataFrame) -> pl.DataFrame:
 
 
 def _compute_tunnel_score(statcast_pitches_df: pl.DataFrame) -> pl.DataFrame:
+    """
+    Tunnel Score = (actualdistance / tunneldistance) - releasedistance
+
+    @params
+        statcast_pitches_df: polars dataframe of statcast pitch data that
+                            has columns describing the previous pitch (see _tie_pitches_to_previous).
+
+    @returns
+        the same dataframe but with added columns that are included in the
+        calculation of tunnel score, and tunnel score itself. This includes
+        "plate_x_no_movement", "plate_z_no_movement", "prev_plate_x_no_movement",
+        "prev_plate_z_no_movement", "tunnel_distance", "actual_distance",
+        "release_distance" and "tunnel_score".
+    """
+
     def _euclidean_distance(point1: tuple[pl.Expr, ...], point2: tuple[pl.Expr, ...]):
+        """
+        In this case the euclidean distance describes how far in inches
+        two different pitch locations are from each other.
+
+        euclidean distance is calculated by the formula:
+            sqrt(((x1 - x2) ** 2 + (y1 - y2) ** 2))
+        """
         x1, y1 = point1
         x2, y2 = point2
         return np.sqrt(((x1 - x2) ** 2 + (y1 - y2) ** 2))
@@ -115,8 +175,6 @@ def _compute_tunnel_score(statcast_pitches_df: pl.DataFrame) -> pl.DataFrame:
             point2=(pl.col("prev_release_pos_x"), pl.col("release_pos_z")),
         ),
     )
-
-    # tunnel score = (actual_distance / tunnel_distance) - release distance
     return statcast_with_distances.with_columns(
         tunnel_score=(pl.col("actual_distance") / pl.col("tunnel_distance"))
         - pl.col("release_distance"),
@@ -126,8 +184,26 @@ def _compute_tunnel_score(statcast_pitches_df: pl.DataFrame) -> pl.DataFrame:
 def _get_film_room_videos(
     pitch: pl.DataFrame, yesterday: datetime.date
 ) -> tuple[str, str]:
+    """
+    Takes in a polars dataframe containing data from only one pitch and yesterdays date
+    and returns mlb filmroom search filters for that pitch. Note that sometimes the pitch
+    is not actually on MLB filmroom, but sometimes it is.
+
+    @params
+        pitch: polars dataframe containing statcast pitch data from just one pitch.
+        yesterday: datetime.date object for yesterdays date (date of the pitch).
+
+    @returns
+        tuple of MLB Filmroom links.
+    """
+    assert (
+        len(pitch) == 1
+    ), "only a polars df with one row can be passed into _get_film_room_video."
+
     inning = pitch.select("inning").item()
-    top_bot = pitch.select("inning_topbot").item().upper() # needs to be either TOP or BOT
+    top_bot = (
+        pitch.select("inning_topbot").item().upper()
+    )  # needs to be either TOP or BOT
     balls = pitch.select("balls").item()
     strikes = pitch.select("strikes").item()
     pitcher_id = pitch.select("pitcher").item()
@@ -170,6 +246,19 @@ def _get_film_room_videos(
 
 
 def yesterdays_top_tunnel(yesterday: datetime.date) -> dict[str, Any]:
+    """
+    Acts as the main function for this compute_tscore.py module. Takes in
+    yesterday's date, then uses the functions above to retrieve yesterdays
+    statcast pitch data, cleans it, computes tunnel score, and collects mlb
+    filmroom links of the pitch.
+
+    @params
+        yesterday: datetime.date object for yesterday's date
+
+    @returns
+        dictionary object containing all of the useful information about the pitch
+        so that we can tweet about it.
+    """
     yesterdays_df: pl.DataFrame = _get_yesterdays_pitches(yesterday)
 
     tied_df: pl.DataFrame = _tie_pitches_to_previous(yesterdays_df)
