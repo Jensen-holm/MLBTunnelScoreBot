@@ -12,6 +12,7 @@ os.environ["TQDM_DISABLE"] = "1"
 warnings.simplefilter(action="ignore", category=FutureWarning)
 
 
+import math
 import polars as pl
 import pandas as pd
 import numpy as np
@@ -287,6 +288,12 @@ def yesterdays_top_tunnel(yesterday: datetime.date) -> dict[str, Any]:
         pitch=tunnel_df,
         yesterday=yesterday,
     )
+
+    # take log_2 of tunnel score to get the final value. This is being
+    # done in order to avoid infinite tunnel score values when the denominator
+    # is really small.
+    tunnel_score = math.log(tunnel_df.select("tunnel_score").item(), 2)
+
     return dict(
         yesterday=yesterday,
         pitcher_name=tunnel_df.select("pitcher_name").item(),
@@ -294,7 +301,7 @@ def yesterdays_top_tunnel(yesterday: datetime.date) -> dict[str, Any]:
         pitch_name=tunnel_df.select("pitch_name").item(),
         home_team=tunnel_df.select("home_team").item(),
         away_team=tunnel_df.select("away_team").item(),
-        tunnel_score=tunnel_df.select("tunnel_score").item(),
+        tunnel_score=tunnel_score,
         hitter_id=tunnel_df.select("hitter_id").item(),
         hitter_name=tunnel_df.select("hitter_name").item(),
         tunneled_filmroom_link=tunneled_filmroom_link,
