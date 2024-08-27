@@ -6,9 +6,9 @@ The MLB-Tunnel-Bot is a X bot that finds the best pitch tunneling scores from th
 
 Read more about how the tunnel score statistic is calculated [here](https://t.co/R0Haj08fty)
 
-The video on the right is an example of a pitch that has a really good tunnel score, and the video on the left is the pitch before it. You can see that both pitches start out on the same initial trajectory, and end up in very different places in the strike zone. 
+The video on the right is an example of a pitch that has a really good tunnel score, and the video on the left is the pitch before it. You can see that both pitches start out on the same initial trajectory, and end up in very different places in the strike zone.
 
-The goal of tunnel score is to put a number to this, and reward pitches that 'looked the same' at the start of the pitch as the previous one, and ended up in different places. 
+The goal of tunnel score is to put a number to this, and reward pitches that 'looked the same' at the start of the pitch as the previous one, and ended up in different places.
 
 <div align="center">
   <img src="prev.gif" height="240" width="320"/>
@@ -28,8 +28,9 @@ The `main.py` program is run as a cron job once every day at 3:50:00 PM UTC, whi
 ### Flags
 
 - `--debug`: run the bot in debug mode (does post tweet, prints it to console & exit program)
+- `--date`: specify the date to get the tunnel scores for (format: `YYYY-MM-DD`), default is yesterday
 
-### Build Locally
+### Run Locally
 
 **Python virtual environment**
   (requires [virtualenv package](https://pypi.org/project/virtualenv/))
@@ -38,7 +39,7 @@ The `main.py` program is run as a cron job once every day at 3:50:00 PM UTC, whi
   3. `pip3 install -r requirements.txt`
   4. `python3 main.py --debug`
 
-### Roadmap
+## Roadmap
 
 - [x] run as a cron job
 - [ ] web dashboard
