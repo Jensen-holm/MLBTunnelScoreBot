@@ -1,6 +1,12 @@
 # MLB-Tunnel-Bot
 
-The MLB-Tunnel-Bot is a X bot that each day during the MLB season ...
+<div align="center">
+
+  The MLB-Tunnel-Bot is a X bot that finds the best pitch tunneling scores from the day before and tweets about them.
+
+  ![Latest Image](PLACEHOLDER_FOR_LATEST_IMAGE)
+
+</div>
 
 1. Collects statcast pitching data from the day prior
 2. Computes pitch tunneling score (statistic that I made)
@@ -11,9 +17,7 @@ You can find the MLB-Tunnel-Bot on X at [this link](https://twitter.com/MLBTunne
 
 ## Flags
 
-- `--once`: run the bot once and then exit the program. If not set, the bot will run indefinitely
-- `--debug`: run the bot in debug mode (no tweets, print to console & exit program)
-- `--date`: specify the date to run the bot for (default is yesterday if this is not set)
+- `--debug`: run the bot in debug mode (does post tweet, prints it to console & exit program)
 
 ## Build Locally
 
