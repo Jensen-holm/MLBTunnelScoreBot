@@ -1,14 +1,10 @@
 # MLB-Tunnel-Bot
 
-<p>
-  The MLB-Tunnel-Bot is a X bot that finds the best pitch tunneling scores from the day before and tweets about them. <br>
-  You can find the MLB-Tunnel-Bot on X at <a href=""https://twitter.com/MLBTunnelBot>this link.</a><br>
-</p>
+The MLB-Tunnel-Bot is a X bot that finds the best pitch tunneling scores from the day before and tweets about them. You can find the MLB-Tunnel-Bot on X at [this link](https://twitter.com/MLBTunnelBot)
 
 <div align="center">
-  <img src="example_plot.png" width="640" height="480>
+  <img src="example_plot.png" width="200" height="200">
 </div>
-
 
 ## Notes
 
