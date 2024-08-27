@@ -164,3 +164,6 @@ cython_debug/
 *.parquet
 
 .DS_Store
+
+/MLBTunnelBot/assets/profile_pic.jpg
+/MLBTunnelBot/assets/tunnel_plot.png

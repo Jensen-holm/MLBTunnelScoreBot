@@ -6,26 +6,29 @@
 </p>
 
 <div align="center">
-  <img src="PLACEHOLDER_FOR_LATEST_IMAGE" alt="Latest, Highest Tunnel Score Plot" width="500" height="500">
+  <img src="example_plot.png" width="640" height="480>
 </div>
 
-## Flags
+
+## Notes
+
+The `main.py` program is run as a cron job once every day at 3:50:00 PM UTC, which is 11:50:00 AM EST.
+
+### Flags
 
 - `--debug`: run the bot in debug mode (does post tweet, prints it to console & exit program)
 
-## Build Locally
-
-**Makefile & Docker**
-  1. `make build`
-  2. `make run`
+### Build Locally
 
 **Python virtual environment**
   (requires [virtualenv package](https://pypi.org/project/virtualenv/))
   1. `virtualenv venv`
   2. `source venv/bin/activate`
   3. `pip3 install -r requirements.txt`
-  4. `python3 main.py --once --debug`
+  4. `python3 main.py --debug`
 
-## Notes
+### Roadmap
 
-This will only work with valid X api keys.
+- [x] run as a cron job
+- [ ] web dashboard
+- [ ] scrape videos of the best tunneled pitches, overlay them, and tweet the video

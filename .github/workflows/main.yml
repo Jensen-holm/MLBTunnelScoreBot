@@ -33,16 +33,3 @@ jobs:
           CONSUMER_SECRET: ${{ secrets.CONSUMER_SECRET }}
           ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
           ACCESS_TOKEN_SECRET: ${{ secrets.ACCESS_TOKEN_SECRET }}
-
-      - name: Update README with latest image
-        run: |
-          image_path="MLB-Tunnel-Bot/assets/tunnel_plot.png"
-          sed -i 's|PLACEHOLDER_FOR_LATEST_IMAGE|'"$image_path"'|' README.md
-
-      - name: Commit changes To README.md and latest tunnel images
-        run: |
-          git config --global user.name 'github-actions[bot]'
-          git config --global user.email 'github-actions@github.com'
-          git add .
-          git commit -m "Update README with latest image"
-          git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/Jensen-holm/MLB-Tunnel-Bot.git
