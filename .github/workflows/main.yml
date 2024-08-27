@@ -3,7 +3,7 @@ name: MLB-Tunnel-Bot
 on:
   schedule:
     # Runs every day at 3:50 PM UTC (11:50 am EST)
-    - cron: "50 16 * * *" # right now debugging at 4:50 UTC
+    - cron: "55 16 * * *" # right now debugging at 4:55 UTC
 
 jobs:
   MLB-Tunnel-Bot:
