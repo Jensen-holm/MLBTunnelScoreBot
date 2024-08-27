@@ -15,7 +15,7 @@ You can find the MLB-Tunnel-Bot on X at [this link](https://twitter.com/MLBTunne
 - `--debug`: run the bot in debug mode (no tweets, print to console & exit program)
 - `--date`: specify the date to run the bot for (default is yesterday if this is not set)
 
-### Build Locally
+## Build Locally
 
 **Makefile & Docker**
   1. `make build`
@@ -26,4 +26,8 @@ You can find the MLB-Tunnel-Bot on X at [this link](https://twitter.com/MLBTunne
   1. `virtualenv venv`
   2. `source venv/bin/activate`
   3. `pip3 install -r requirements.txt`
-  4. `python3 main.py`
+  4. `python3 main.py --once --debug`
+
+## Notes
+
+This will only work with valid X api keys.
