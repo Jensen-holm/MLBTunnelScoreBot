@@ -1,8 +1,3 @@
-#
-# Author: Jensen Holm
-# Date: 05/28/2024
-#
-
 import warnings
 import os
 

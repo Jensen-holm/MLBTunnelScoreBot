@@ -1,8 +1,3 @@
-#
-# MLB Tunnel Bot
-# Author: Jensen Holm
-#
-
 import MLBTunnelBot
 import datetime
 import logging
@@ -13,12 +8,16 @@ logging.basicConfig(
 )
 
 
-def write_tweet(yesterday: datetime.date, debug: bool) -> None:
+def write_tweet(date: datetime.date, debug: bool) -> None:
     try:
-        tweet = MLBTunnelBot.write(yesterday=yesterday, debug=debug)
+        tweet = MLBTunnelBot.write(yesterday=date, debug=debug)
         logging.info(f"Successful write for {yesterday}\n{tweet}")
     except Exception as e:
         logging.error(f"Error for {yesterday} due to exception: {e.__class__} -> {e}")
+
+
+def yesterday() -> datetime.date:
+    return datetime.date.today() - datetime.timedelta(days=1)
 
 
 if __name__ == "__main__":
@@ -30,8 +29,15 @@ if __name__ == "__main__":
         help="Date to start the program at",
         action="store_true",
     )
+    parser.add_argument(
+        "--date",
+        help="Date to start the program at, default is yesterday (ISO 8601 format: YYYY-MM-DD)",
+        type=datetime.date.fromisoformat,
+    )
 
+    date = parser.parse_args().date
+    debug = parser.parse_args().debug
     _ = write_tweet(
-        yesterday=datetime.date.today() - datetime.timedelta(days=1),
+        date=yesterday() if date is None else date,
         debug=parser.parse_args().debug,
     )

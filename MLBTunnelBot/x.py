@@ -1,8 +1,3 @@
-#
-# Author: Jensen Holm
-# Date: 5/23/2024
-#
-
 import matplotlib.image as image
 import polars as pl
 import numpy as np
