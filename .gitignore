@@ -165,4 +165,6 @@ cython_debug/
 
 .DS_Store
 
-
+# the iamges of the previous highest tunnel score
+/MLBTunnelBot/assets/profile_pic.jpg
+/MLBTunnelBot/assets/tunnel_plot.png

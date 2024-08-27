@@ -169,15 +169,15 @@ def _plot_pitches(
     )
 
 
-def write(yesterday: datetime.date, _debug=False) -> str:
+def write(yesterday: datetime.date, debug: bool = False) -> str:
     """
     serves as the main function for this entire program.
     write() will post the tweet to x depending on the value
-    of the _debug parameter.
+    of the debug parameter.
 
     @params
         yesterday: datetime.date object of yesterday's date.
-        _debug: boolean value, if true will not post to x.
+        debug: boolean value, if true will not post to x.
 
     @returns
         the generated tweet text.
@@ -205,7 +205,7 @@ def write(yesterday: datetime.date, _debug=False) -> str:
 
     tweet_text = _build_tweet_text(kwargs=pitch_info)
 
-    if _debug:
+    if debug:
         return tweet_text
 
     client.create_tweet(
