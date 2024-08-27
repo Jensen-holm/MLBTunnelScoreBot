@@ -195,13 +195,12 @@ def write(yesterday: datetime.date, debug: bool = False) -> str:
         player_headshot=headshot_img,
     )
 
-    tunnel_plot = api.media_upload(filename=TUNNEL_PLOT_DIR)
-    assert tunnel_plot is not None, f"tunnel_plot is None."
-
     tweet_text = _build_tweet_text(kwargs=pitch_info)
-
     if debug:
         return tweet_text
+
+    tunnel_plot = api.media_upload(filename=TUNNEL_PLOT_DIR)
+    assert tunnel_plot is not None, f"tunnel_plot is None."
 
     client.create_tweet(
         text=tweet_text,
