@@ -1,20 +1,13 @@
 # MLB-Tunnel-Bot
 
-<p align="center">
+<p>
   The MLB-Tunnel-Bot is a X bot that finds the best pitch tunneling scores from the day before and tweets about them. <br>
-  You can find the MLB-Tunnel-Bot on X at [this link](https://twitter.com/MLBTunnelBot) <br>
+  You can find the MLB-Tunnel-Bot on X at <a href=""https://twitter.com/MLBTunnelBot>this link.</a><br>
 </p>
 
 <div align="center">
   <img src="PLACEHOLDER_FOR_LATEST_IMAGE" alt="Latest, Highest Tunnel Score Plot" width="500" height="500">
 </div>
-
-1. Collects statcast pitching data from the day prior
-2. Computes pitch tunneling score (statistic that I made)
-3. Tweets a sloo of information about that pitch (including links to video, strike zone plot, and the score itself)
-4. Does it again the next day
-
-You can find the MLB-Tunnel-Bot on X at [this link](https://twitter.com/MLBTunnelBot)
 
 ## Flags
 
