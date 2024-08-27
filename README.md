@@ -9,7 +9,13 @@ The MLB-Tunnel-Bot is a X bot that each day during the MLB season ...
 
 You can find the MLB-Tunnel-Bot on X at [this link](https://twitter.com/MLBTunnelBot)
 
-### Build Locally
+## Flags
+
+- `--once`: run the bot once and then exit the program. If not set, the bot will run indefinitely
+- `--debug`: run the bot in debug mode (no tweets, print to console & exit program)
+- `--date`: specify the date to run the bot for (default is yesterday if this is not set)
+
+## Build Locally
 
 **Makefile & Docker**
   1. `make build`
@@ -17,8 +23,11 @@ You can find the MLB-Tunnel-Bot on X at [this link](https://twitter.com/MLBTunne
 
 **Python virtual environment**
   (requires [virtualenv package](https://pypi.org/project/virtualenv/))
-  1. `virtualenv venv` 
+  1. `virtualenv venv`
   2. `source venv/bin/activate`
   3. `pip3 install -r requirements.txt`
-  4. `python3 main.py`
+  4. `python3 main.py --once --debug`
 
+## Notes
+
+This will only work with valid X api keys.
