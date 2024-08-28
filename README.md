@@ -4,7 +4,26 @@ The MLB-Tunnel-Bot is a X bot that finds the best pitch tunneling scores from th
 
 ## Tunnel Score
 
+### The Math
+
+```math
+TunnelScore = \log_2 ((\frac{Pitch Location Distance}{Pitch Tunnel Distance}) - Release Distance)
+```
+
+**where:**
+  - Pitch Location Distance = euclidien distance between the previous pitchs' location when it crossed the plate, and the current pitch's location when it crossed the plate.
+  - Pitch Tunnel Distance = euclidean distance between the previous pitches initial trajectory, and the current pitches initial trajectory.
+  - Release Distance = euclidean distance between the previous pitches release point, and the current pitches release point.
+
 Read more about how the tunnel score statistic is calculated [here](https://t.co/R0Haj08fty)
+
+---
+
+### Visual
+
+<div align="center">
+  <img src="sam_long_overlay.gif" height="540" width="960"/>
+</div>
 
 This clip is an example of a pitch that has a really good tunnel score. You can see that both pitches start out on the same initial trajectory, and end up in very different places in the strike zone. 
 
@@ -13,10 +32,6 @@ The pitch that has the high tunnel score is the second pitch trown, which in thi
 The goal of tunnel score is to put a number to this, and reward pitches that 'looked the same' at the start of the pitch as the previous one, and ended up in different places.
 
 This curveball had the highest tunnel score of the day on July 24, 2024.
-
-<div align="center">
-  <img src="sam_long_overlay.gif" height="540" width="960"/>
-</div>
 
 ## Example Tweet
 
