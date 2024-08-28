@@ -33,11 +33,12 @@ The goal of tunnel score is to put a number to this, and reward pitches that 'lo
 
 This curveball had the highest tunnel score of the day on July 24, 2024.
 
-## Example Tweet
+## X Bot Diagram
 
 <div align="center">
-  <img src="example_tweet.png" height="500" width="500" />
+  <img src="diagram.png" height="691" width="811"/>
 </div>
+
 
 ## Notes
 
@@ -53,6 +54,12 @@ The `main.py` program is run as a cron job once every day at 3:50:00 PM UTC, whi
 1. `git clone https://github.com/Jensen-holm/MLBTunnelBot && cd MLBTunnelBot`
 2. `pip3 install -r requirements.txt`
 3. `python3 main.py --debug --date=2024-07-02`
+
+## Example Tweet
+
+<div align="center">
+  <img src="example_tweet.png" height="500" width="500" />
+</div>
 
 ## Roadmap
 
