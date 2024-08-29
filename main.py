@@ -39,5 +39,5 @@ if __name__ == "__main__":
     debug = parser.parse_args().debug
     _ = write_tweet(
         date=yesterday() if date is None else date,
-        debug=parser.parse_args().debug,
+        debug=debug,
     )
