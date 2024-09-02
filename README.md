@@ -1,5 +1,7 @@
 # MLBTunnelBot
 
+[![MLB-Tunnel-Bot](https://github.com/Jensen-holm/MLBTunnelScoreBot/actions/workflows/main.yml/badge.svg?branch=main)](https://github.com/Jensen-holm/MLBTunnelScoreBot/actions/workflows/main.yml)
+
 The MLB-Tunnel-Bot is a X bot that finds the best pitch tunneling scores from the day before and tweets about them. You can find the MLB-Tunnel-Bot on X at [this link](https://x.com/PitchSilo).
 
 ## Tunnel Score
