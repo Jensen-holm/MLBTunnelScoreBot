@@ -181,12 +181,17 @@ def write(yesterday: datetime.date, debug: bool = False) -> str:
         yesterday=yesterday,
     )
 
+
     pitcher_id: int = pitch_info.get("pitcher_id", None)
     assert pitcher_id is not None, f"pitcher_id is None."
     assert isinstance(pitcher_id, int), f"pitcher_id is not an integer."
 
     tunnel_df: Optional[pl.DataFrame] = pitch_info.get("tunnel_df", None)
     assert tunnel_df is not None
+
+    tunnel_df = tunnel_df.with_columns(
+        tunnel_score=pl.col("tunnel_score").log(base=2),
+    )
 
     headshot_img = _get_player_headshot(player_mlbam_id=pitcher_id)
     _ = _plot_pitches(

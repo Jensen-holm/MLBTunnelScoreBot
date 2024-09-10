@@ -11,9 +11,9 @@ logging.basicConfig(
 def write_tweet(date: datetime.date, debug: bool) -> None:
     try:
         tweet = MLBTunnelBot.write(yesterday=date, debug=debug)
-        logging.info(f"Successful write for {yesterday}\n{tweet}")
+        logging.info(f"Successful write for {date}\n{tweet}")
     except Exception as e:
-        logging.error(f"Error for {yesterday} due to exception: {e.__class__} -> {e}")
+        logging.error(f"Error for {date} due to exception: {e.__class__} -> {e}")
 
 
 def yesterday() -> datetime.date:
@@ -33,11 +33,7 @@ if __name__ == "__main__":
         "--date",
         help="Date to start the program at, default is yesterday (ISO 8601 format: YYYY-MM-DD)",
         type=datetime.date.fromisoformat,
+        default=yesterday(),
     )
 
-    date = parser.parse_args().date
-    debug = parser.parse_args().debug
-    _ = write_tweet(
-        date=yesterday() if date is None else date,
-        debug=parser.parse_args().debug,
-    )
+    _ = write_tweet(**vars(parser.parse_args()))
