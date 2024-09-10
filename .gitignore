@@ -165,5 +165,8 @@ cython_debug/
 
 .DS_Store
 
+MLBTunnelBot/assets/profile_pic.jpg
+MLBTunnelBot/assets/tunnel_plot.png
+
 /MLBTunnelBot/assets/profile_pic.jpg
 /MLBTunnelBot/assets/tunnel_plot.png
